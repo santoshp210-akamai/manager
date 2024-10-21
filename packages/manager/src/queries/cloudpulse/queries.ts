@@ -4,6 +4,7 @@ import {
   getDashboards,
   getJWEToken,
   getMetricDefinitionsByServiceType,
+  getNotificationChannels,
 } from '@linode/api-v4';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 
@@ -56,6 +57,10 @@ export const queryFactory = createQueryKeys(key, {
     queryKey: [serviceType],
   }),
 
+  notificationChannels: {
+    queryFn: () => getNotificationChannels(),
+    queryKey: null,
+  },
   resources: (
     resourceType: string | undefined,
     params?: Params,
@@ -77,7 +82,10 @@ export const queryFactory = createQueryKeys(key, {
         return volumeQueries.lists._ctx.all(params, filters); // default to volumes
     }
   },
-
+  serviceTypes: {
+    queryFn: () => getCloudPulseServiceTypes(),
+    queryKey: null,
+  },
   token: (serviceType: string | undefined, request: JWETokenPayLoad) => ({
     queryFn: () => getJWEToken(request, serviceType!),
     queryKey: [serviceType],

@@ -125,10 +125,80 @@ export interface CloudPulseMetricsList {
   values: [number, string][];
 }
 
+export interface CreateAlertDefinitionPayload {
+  name: string;
+  region: string;
+  description?: string;
+  service_type: string;
+  engineOption: string;
+  resource_ids: string[];
+  severity: string;
+  criteria: MetricCriteria[];
+  triggerCondition: TriggerCondition;
+  channel_ids: number[];
+}
+export interface MetricCriteria {
+  metric: string;
+  aggregation_type: string;
+  operator: string;
+  value: number;
+  dimension_filters: DimensionFilter[];
+}
+
+export interface DimensionFilter {
+  dimension_label: string;
+  operator: string;
+  value: string;
+}
+
+export interface TriggerCondition {
+  criteria_condition: string;
+  polling_interval_seconds: string;
+  evaluation_period_seconds: string;
+  trigger_occurrences: number;
+}
+export interface Alert {
+  id: number;
+  name: string;
+  description: string;
+  status: string;
+  severity: string;
+  service_type: string;
+  resource_ids: string[];
+  criteria: MetricCriteria[];
+  triggerCondition: TriggerCondition;
+  notification: {
+    notification_id: string;
+    template_name: string;
+  }[];
+  created_by: string;
+  updated_by: string;
+  created: string;
+  updated: string;
+}
+
 export interface ServiceTypes {
   service_type: string;
 }
 
 export interface ServiceTypesList {
   data: ServiceTypes[];
+}
+
+export interface NotificationChannel {
+  id: number;
+  notification_type: string;
+  template_name: string;
+  content: {
+    email_ids: string[];
+  };
+  associated_alerts: number[];
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationChannelList {
+  data: NotificationChannel[];
 }
