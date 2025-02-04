@@ -11,6 +11,11 @@ import type { FieldPathByValue } from 'react-hook-form';
 
 export interface CloudPulseModifyAlertResourcesProp {
   /**
+   * Whether create or edit flow
+   */
+  isCreate?: boolean;
+
+  /**
    * name used for the component in the form
    */
   name: FieldPathByValue<CreateAlertDefinitionForm, string[]>;
@@ -18,13 +23,14 @@ export interface CloudPulseModifyAlertResourcesProp {
 
 export const CloudPulseModifyAlertResources = React.memo(
   (props: CloudPulseModifyAlertResourcesProp) => {
-    const { name } = props;
+    const { isCreate, name } = props;
 
     const theme = useTheme();
     const {
       control,
       formState,
       setValue,
+      getValues,
     } = useFormContext<CreateAlertDefinitionForm>();
     const serviceTypeWatcher = useWatch({ control, name: 'serviceType' });
 
@@ -36,10 +42,14 @@ export const CloudPulseModifyAlertResources = React.memo(
     };
 
     React.useEffect(() => {
-      if (serviceTypeWatcher) {
+      if (serviceTypeWatcher && isCreate) {
         setValue('entity_ids', [], { shouldValidate: true });
       }
-    }, [serviceTypeWatcher, setValue]);
+    }, [isCreate, serviceTypeWatcher, setValue]);
+
+    React.useEffect(() => {
+      setValue('entity_ids', getValues('entity_ids'), { shouldValidate: true });
+    }, [formState.isSubmitted, getValues, setValue]);
 
     return (
       <Controller
