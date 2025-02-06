@@ -214,7 +214,23 @@ const entityTransfers = [
 
 const databases = [
   http.get('*/databases/instances', () => {
-    const databases = databaseInstanceFactory.buildList(9);
+    const database1 = databaseInstanceFactory.build({
+      cluster_size: 1,
+      id: 1,
+      label: 'database-instance-1',
+    });
+    const database2 = databaseInstanceFactory.build({
+      cluster_size: 2,
+      id: 2,
+      label: 'database-instance-2',
+    });
+    const database3 = databaseInstanceFactory.build({
+      cluster_size: 3,
+      id: 3,
+      label: 'database-instance-3',
+    });
+
+    const databases = [database1, database2, database3];
     return HttpResponse.json(makeResourcePage(databases));
   }),
 
@@ -728,6 +744,11 @@ export const handlers = [
         region: 'us-central',
       }),
       linodeFactory.build({
+        label: 'linode_with_tag_test4',
+        region: 'us-east',
+        tags: ['test4'],
+      }),
+      linodeFactory.build({
         label: 'eu-linode',
         region: 'eu-west',
       }),
@@ -744,6 +765,7 @@ export const handlers = [
       const headers = JSON.parse(request.headers.get('x-filter') || '{}');
       const orFilters = headers['+or'];
       const andFilters = headers['+and'];
+      const regionFilter = headers.region;
 
       let filteredLinodes = linodes; // Default to the original linodes in case no filters are applied
 
@@ -767,6 +789,12 @@ export const handlers = [
           return orFilters.some((filter: { tags: string }) =>
             linode.tags.includes(filter.tags)
           );
+        });
+      }
+
+      if (regionFilter) {
+        filteredLinodes = filteredLinodes.filter((linode) => {
+          return linode.region === regionFilter;
         });
       }
 
