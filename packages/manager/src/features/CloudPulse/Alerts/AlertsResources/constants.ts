@@ -1,6 +1,9 @@
 import { engineTypeMap } from '../constants';
+import { AlertsEngineTypeFilter } from './AlertsEngineTypeFilter';
 
+import type { AlertsEngineOptionProps } from './AlertsEngineTypeFilter';
 import type { AlertInstance } from './DisplayAlertResources';
+import type { MemoExoticComponent } from 'react';
 
 interface ColumnConfig<T> {
   accessor: (data: T) => string;
@@ -10,7 +13,7 @@ interface ColumnConfig<T> {
 
 type ServiceColumns<T> = Record<string, ColumnConfig<T>[]>;
 
-export const serviceColumns: ServiceColumns<AlertInstance> = {
+export const serviceTypeBasedColumns: ServiceColumns<AlertInstance> = {
   dbaas: [
     {
       accessor: ({ label }) => label,
@@ -18,15 +21,15 @@ export const serviceColumns: ServiceColumns<AlertInstance> = {
       sortingKey: 'label',
     },
     {
+      accessor: ({ region }) => region,
+      label: 'Region',
+      sortingKey: 'region',
+    },
+    {
       accessor: ({ engineType }) =>
         engineTypeMap[engineType ?? ''] ?? engineType,
       label: 'Database Engine',
       sortingKey: 'engineType',
-    },
-    {
-      accessor: ({ region }) => region,
-      label: 'Region',
-      sortingKey: 'region',
     },
   ],
   linode: [
@@ -41,4 +44,24 @@ export const serviceColumns: ServiceColumns<AlertInstance> = {
       sortingKey: 'region',
     },
   ],
+};
+
+export const serviceToFiltersMap: Record<
+  string,
+  MemoExoticComponent<React.ComponentType<AlertsEngineOptionProps>>[]
+> = {
+  dbaas: [AlertsEngineTypeFilter], // dbaas uses Engine filter
+};
+
+export type AlertFilterKey = 'engineType'; // will be extended to have tags, plan etc.,
+
+export type AlertFilterType = boolean | number | string | undefined;
+
+export const alertApplicableFilterKeys: AlertFilterKey[] = ['engineType'];
+
+export const alertAdditionalFilterKeyMap: Record<
+  AlertFilterKey,
+  keyof AlertInstance
+> = {
+  engineType: 'engineType',
 };

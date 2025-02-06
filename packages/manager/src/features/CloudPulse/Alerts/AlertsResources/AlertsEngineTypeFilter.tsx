@@ -1,8 +1,16 @@
 import { Autocomplete } from '@linode/ui';
 import React from 'react';
 
+import type { AlertFilterKey } from './constants';
+
 export interface AlertsEngineOptionProps {
-  handleSelection: (engineType: string | undefined) => void;
+  /**
+   * Callback to publish the selected engine type
+   */
+  handleFilterChange: (
+    engineType: string | undefined,
+    type: AlertFilterKey
+  ) => void;
 }
 
 interface EngineType {
@@ -21,20 +29,21 @@ const engineOptions: EngineType[] = [
   },
 ];
 
-export const AlertsEngineOptionFilter = React.memo(
+export const AlertsEngineTypeFilter = React.memo(
   (props: AlertsEngineOptionProps) => {
-    const { handleSelection } = props;
+    const { handleFilterChange: handleSelection } = props;
 
     return (
       <Autocomplete
+        onChange={(e, engineOption) =>
+          handleSelection(engineOption?.id, 'engineType')
+        }
         textFieldProps={{
           hideLabel: true,
         }}
         autoHighlight
         clearOnBlur
-        disableClearable={false}
         label="Engine Type"
-        onChange={(e, engineOption) => handleSelection(engineOption?.id)}
         options={engineOptions}
         placeholder="Select a Database Engine"
       />

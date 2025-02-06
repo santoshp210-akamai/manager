@@ -12,7 +12,7 @@ import { TableRow } from 'src/components/TableRow';
 import { TableRowError } from 'src/components/TableRowError/TableRowError';
 import { TableSortCell } from 'src/components/TableSortCell';
 
-import { serviceColumns } from './constants';
+import { serviceTypeBasedColumns } from './constants';
 
 import type { Order } from 'src/hooks/useOrder';
 
@@ -74,7 +74,7 @@ export interface DisplayAlertResourceProp {
   /**
    * The service type associated with the alert
    */
-  serviceType: string | undefined;
+  serviceType?: string;
 }
 
 export const DisplayAlertResources = React.memo(
@@ -161,7 +161,7 @@ export const DisplayAlertResources = React.memo(
       );
     };
 
-    const columns = serviceColumns[serviceType ?? 'linode'] ?? [];
+    const columns = serviceTypeBasedColumns[serviceType ?? ''] ?? [];
 
     return (
       <Paginate data={sortedData ?? []} pageSize={pageSize}>
