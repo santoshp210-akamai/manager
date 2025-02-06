@@ -192,7 +192,7 @@ export const Metric = (props: MetricCriteriaProps) => {
                     null
                   }
                   data-testid="aggregation-type"
-                  disabled={aggOptions.length === 0}
+                  disabled={aggOptions.length === 0 || !metricWatcher}
                   errorText={fieldState.error?.message}
                   key={metricWatcher}
                   label="Aggregation Type"

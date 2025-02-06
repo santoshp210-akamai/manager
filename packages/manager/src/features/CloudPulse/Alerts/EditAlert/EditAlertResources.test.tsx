@@ -18,7 +18,6 @@ const regions = regionFactory.buildList(4).map((region, index) => ({
 
 // Mock Queries
 const queryMocks = vi.hoisted(() => ({
-  // useAlertDefinitionQuery: vi.fn(),
   useEditAlertDefinition: vi.fn(),
   useRegionsQuery: vi.fn(),
   useResourcesQuery: vi.fn(),
@@ -48,11 +47,6 @@ beforeAll(() => {
 // Shared Setup
 beforeEach(() => {
   vi.clearAllMocks();
-  // queryMocks.useAlertDefinitionQuery.mockReturnValue({
-  //   data: alertDetails,
-  //   isError: false,
-  //   isFetching: false,
-  // });
   queryMocks.useResourcesQuery.mockReturnValue({
     data: linodes,
     isError: false,
@@ -81,44 +75,6 @@ describe('EditAlertResources component tests', () => {
     expect(getByPlaceholderText('Select Regions')).toBeInTheDocument();
     expect(getByTestId('show_selected_only')).toBeInTheDocument();
   });
-
-  // it('Edit alert resources alert details error and loading path', () => {
-  //   queryMocks.useAlertDefinitionQuery.mockReturnValue({
-  //     data: undefined,
-  //     isError: true, // simulate error
-  //     isFetching: false,
-  //   });
-
-  //   const { getByText } = renderWithTheme(<EditAlertResources />);
-
-  //   expect(
-  //     getByText(
-  //       'An error occurred while loading the alerts definitions and resources. Please try again later.'
-  //     )
-  //   ).toBeInTheDocument();
-
-  //   queryMocks.useAlertDefinitionQuery.mockReturnValue({
-  //     data: undefined,
-  //     isError: false,
-  //     isFetching: true, // simulate loading
-  //   });
-
-  //   const { getByTestId } = renderWithTheme(<EditAlertResources />);
-
-  //   expect(getByTestId('circle-progress')).toBeInTheDocument();
-  // });
-
-  // it('Edit alert resources alert details empty path', () => {
-  //   queryMocks.useAlertDefinitionQuery.mockReturnValue({
-  //     data: undefined, // simulate empty
-  //     isError: false,
-  //     isFetching: false,
-  //   });
-
-  //   const { getByText } = renderWithTheme(<EditAlertResources />);
-
-  //   expect(getByText('No Data to display.')).toBeInTheDocument();
-  // });
 
   it('Edit alert resources successful edit', async () => {
     const mutateAsyncSpy = queryMocks.useEditAlertDefinition().mutateAsync;

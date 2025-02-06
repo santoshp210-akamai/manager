@@ -36,9 +36,11 @@ beforeEach(() => {
 
 describe('AlertDefinition Create', () => {
   it('should render input components', async () => {
-    const { getByLabelText, getByPlaceholderText, getByText } = renderWithTheme(
-      <CreateAlertDefinition />
-    );
+    const {
+      findByPlaceholderText,
+      getByLabelText,
+      getByText,
+    } = renderWithTheme(<CreateAlertDefinition />);
 
     expect(getByText('1. General Information')).toBeVisible();
     expect(getByLabelText('Name')).toBeVisible();
@@ -46,10 +48,10 @@ describe('AlertDefinition Create', () => {
     expect(getByLabelText('Severity')).toBeVisible();
     expect(getByLabelText('Service')).toBeVisible();
     expect(getByText('2. Resources')).toBeVisible();
-    await expect(
-      getByPlaceholderText('Search for a Region or Resource')
+    expect(
+      await findByPlaceholderText('Search for a Region or Resource')
     ).toBeInTheDocument();
-    await expect(getByPlaceholderText('Select Regions')).toBeInTheDocument();
+    expect(await findByPlaceholderText('Select Regions')).toBeInTheDocument();
     expect(getByText('3. Criteria')).toBeVisible();
     expect(getByText('Metric Threshold')).toBeVisible();
     expect(getByLabelText('Data Field')).toBeVisible();

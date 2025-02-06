@@ -157,9 +157,10 @@ const convertAlertDefinitionMetricValues = (
 ): MetricCriteria => {
   return {
     aggregate_function: formValue.aggregate_function,
-    dimension_filters: formValue.dimension_filters?.map((filter) => {
-      return convertAlertDefinitionDimensionFilterValues(filter);
-    }),
+    dimension_filters:
+      formValue.dimension_filters?.map((filter) => {
+        return convertAlertDefinitionDimensionFilterValues(filter);
+      }) ?? [],
     metric: formValue.metric,
     operator: formValue.operator,
     threshold: formValue.threshold,
