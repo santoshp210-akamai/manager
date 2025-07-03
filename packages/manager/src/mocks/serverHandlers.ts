@@ -1472,7 +1472,7 @@ export const handlers = [
     return HttpResponse.json(volume);
   }),
   http.get('*/vlans', () => {
-    const vlans = VLANFactory.buildList(2);
+    const vlans = VLANFactory.buildList(30);
     return HttpResponse.json(makeResourcePage(vlans));
   }),
   http.get('*/profile/preferences', () => {
@@ -2032,7 +2032,7 @@ export const handlers = [
       backups_enabled: true,
       longview_subscription: 'longview-100',
       managed: true,
-      maintenance_policy_id: 1,
+      maintenance_policy: 'linode/migrate',
       network_helper: true,
       object_storage: 'active',
     });
@@ -2685,9 +2685,15 @@ export const handlers = [
             },
             service_type: serviceType === 'dbaas' ? 'dbaas' : 'linode',
           }),
-          ...alertFactory.buildList(5, {
+          ...alertFactory.buildList(6, {
             service_type: serviceType === 'dbaas' ? 'dbaas' : 'linode',
             type: 'user',
+            scope: 'account',
+          }),
+          ...alertFactory.buildList(6, {
+            service_type: serviceType === 'dbaas' ? 'dbaas' : 'linode',
+            type: 'user',
+            scope: 'region',
           }),
         ],
       });
