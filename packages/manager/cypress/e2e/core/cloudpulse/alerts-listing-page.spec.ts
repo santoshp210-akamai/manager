@@ -96,6 +96,15 @@ const mockAlerts = [
   }),
 ];
 
+const mockFeatureFlag = flagsFactory.build({
+  aclpAlerting: {
+    alertDefinitions: true,
+    recentActivity: false,
+    accountAlertLimit: 10,
+    accountMetricLimit: 10,
+    notificationChannels: false,
+  },
+});
 interface AlertActionOptions {
   action: 'Disable' | 'Enable';
   alertName: string;
@@ -432,6 +441,7 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
     const mockAlerts = alertFactory.buildList(105, {
       type: 'system',
     });
+    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
     cy.visitWithLogin(alertDefinitionsUrl);
     cy.wait('@getAlertDefinitionsList');
@@ -482,7 +492,7 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
         }),
       })
     );
-
+    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
     cy.visitWithLogin(alertDefinitionsUrl);
     cy.wait('@getAlertDefinitionsList');
@@ -508,6 +518,7 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
     mockAlerts.forEach((alert) => {
       mockDeleteAlert('dbaas', alert.id).as(`deleteAlert-${alert.label}`);
     });
+    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
     cy.visitWithLogin(alertDefinitionsUrl);
     cy.wait('@getAlertDefinitionsList');
@@ -550,6 +561,7 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
         }),
       })
     );
+    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
 
     cy.visitWithLogin(alertDefinitionsUrl);
