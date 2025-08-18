@@ -38,6 +38,7 @@ import type {
   AlertStatusType,
   CloudPulseServiceType,
 } from '@linode/api-v4';
+import type { Flags } from 'src/featureFlags';
 const alertDefinitionsUrl = '/alerts/definitions';
 
 const mockProfile = profileFactory.build({
@@ -96,15 +97,26 @@ const mockAlerts = [
   }),
 ];
 
-const mockFeatureFlag = flagsFactory.build({
+const flags: Partial<Flags> = {
+  aclp: { beta: true, enabled: true },
   aclpAlerting: {
-    alertDefinitions: true,
-    recentActivity: false,
     accountAlertLimit: 10,
     accountMetricLimit: 10,
+    alertDefinitions: true,
+    recentActivity: false,
     notificationChannels: false,
   },
-});
+  aclpServices: {
+    dbaas: {
+      metrics: { beta: true, enabled: true },
+      alerts: { beta: true, enabled: true },
+    },
+    linode: {
+      metrics: { beta: true, enabled: true },
+      alerts: { beta: true, enabled: true },
+    },
+  },
+};
 interface AlertActionOptions {
   action: 'Disable' | 'Enable';
   alertName: string;
@@ -221,7 +233,7 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
    * - Ensures API calls return correct responses and status codes.
    */
   beforeEach(() => {
-    mockAppendFeatureFlags(flagsFactory.build());
+    mockAppendFeatureFlags(flagsFactory.build(flags));
     mockGetAccount(mockAccount);
     mockGetProfile(mockProfile);
     mockGetCloudPulseServices(['linode', 'dbaas']);
@@ -441,7 +453,6 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
     const mockAlerts = alertFactory.buildList(105, {
       type: 'system',
     });
-    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
     cy.visitWithLogin(alertDefinitionsUrl);
     cy.wait('@getAlertDefinitionsList');
@@ -492,7 +503,6 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
         }),
       })
     );
-    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
     cy.visitWithLogin(alertDefinitionsUrl);
     cy.wait('@getAlertDefinitionsList');
@@ -518,7 +528,6 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
     mockAlerts.forEach((alert) => {
       mockDeleteAlert('dbaas', alert.id).as(`deleteAlert-${alert.label}`);
     });
-    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
     cy.visitWithLogin(alertDefinitionsUrl);
     cy.wait('@getAlertDefinitionsList');
@@ -561,7 +570,6 @@ describe('Integration Tests for CloudPulse Alerts Listing Page', () => {
         }),
       })
     );
-    mockAppendFeatureFlags(mockFeatureFlag);
     mockGetAllAlertDefinitions(mockAlerts).as('getAlertDefinitionsList');
 
     cy.visitWithLogin(alertDefinitionsUrl);
