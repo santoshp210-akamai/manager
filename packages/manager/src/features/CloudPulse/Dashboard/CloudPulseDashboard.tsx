@@ -106,7 +106,8 @@ export const CloudPulseDashboard = (props: DashboardProperties) => {
     {},
     RESOURCE_FILTER_MAP[dashboard?.service_type ?? ''] ?? {}
   );
-
+  console.log('resources', resourceList);
+  
   const {
     data: metricDefinitions,
     isError: isMetricDefinitionError,

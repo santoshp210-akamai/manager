@@ -52,7 +52,15 @@ export const CloudPulseDashboardSelect = React.memo(
       isLoading: serviceTypesLoading,
     } = useCloudPulseServiceTypes(true);
 
-    const { aclpServices } = useFlags();
+    // const { aclpServices } = useFlags();
+    const aclpServices = {
+      objectstorage: {
+        metrics: {
+          beta: true,
+          enabled: true,
+        },
+      },
+    };
 
     // Get formatted enabled service types based on the LD flag
     const serviceTypes: CloudPulseServiceType[] = getEnabledServiceTypes(

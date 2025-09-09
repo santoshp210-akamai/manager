@@ -16,6 +16,11 @@ import {
 } from '@linode/queries';
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 
+import { objectStorageQueries } from '../object-storage/queries';
+import {
+  getAllBucketsFromEndpoints,
+  getAllObjectStorageEndpoints,
+} from '../object-storage/requests';
 import { fetchCloudPulseMetrics } from './metrics';
 import {
   getAllAlertsRequest,
@@ -29,6 +34,7 @@ import type {
   JWETokenPayLoad,
   Params,
 } from '@linode/api-v4';
+import type { CloudPulseObjectStorageBucket } from 'src/features/CloudPulse/shared/types';
 
 const key = 'Clousepulse';
 
@@ -124,9 +130,16 @@ export const queryFactory = createQueryKeys(key, {
 
       case 'nodebalancer':
         return nodebalancerQueries.nodebalancers._ctx.all(params, filters);
+      case 'objectstorage':
+        return {
+          queryFn: () => getAllBuckets(),
+          queryKey: [
+            objectStorageQueries.buckets.queryKey,
+            objectStorageQueries.endpoints.queryKey,
+          ],
+        };
       case 'volumes':
         return volumeQueries.lists._ctx.all(params, filters); // in this we don't need to define our own query factory, we will reuse existing implementation in volumes.ts
-
       default:
         return volumeQueries.lists._ctx.all(params, filters); // default to volumes
     }
@@ -137,3 +150,22 @@ export const queryFactory = createQueryKeys(key, {
     queryKey: [serviceType, { resource_ids: request.entity_ids.sort() }],
   }),
 });
+
+const getAllBuckets = async () => {
+  const endpoints = await getAllObjectStorageEndpoints();
+  // get all the buckets from the endpoints
+  const allBuckets = await getAllBucketsFromEndpoints(endpoints);
+  // filter out the buckets that are not GEN2
+  const objGEN2Buckets = allBuckets.buckets.filter(
+    (bucket) => bucket.endpoint_type !== 'E0' && bucket.endpoint_type !== 'E1'
+  );
+  const tranformedBuckets: CloudPulseObjectStorageBucket[] = objGEN2Buckets.map(
+    (bucket) => ({
+      ...bucket,
+      error: allBuckets.errors.find(
+        (error) => error.endpoint.s3_endpoint === bucket.s3_endpoint
+      )?.error,
+    })
+  );
+  return tranformedBuckets;
+};

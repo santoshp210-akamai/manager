@@ -33,15 +33,25 @@ export const useResourcesQuery = (
             }
           });
         }
+
+        const id =
+          resourceType === 'objectstorage'
+            ? resource.hostname
+            : String(resource.id);
+        const label =
+          resourceType === 'objectstorage' ? resource.hostname : resource.label;
+
         return {
           engineType: resource.engine,
-          id: String(resource.id),
-          label: resource.label,
+          id,
+          label,
           region: resource.region,
           regions: resource.regions ? resource.regions : [],
+          endpoint: resource.s3_endpoint,
           tags: resource.tags,
           entities,
           clusterSize: resource.cluster_size,
+          error: resource.error,
         };
       });
     },

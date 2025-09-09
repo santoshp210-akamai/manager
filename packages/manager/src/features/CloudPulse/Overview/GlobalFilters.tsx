@@ -97,13 +97,18 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
     handleAnyFilterChange(REFRESH, Date.now(), []);
   }, []);
 
-  const { isLoading, isError } = useResourcesQuery(
+  const {
+    data: resources,
+    isLoading,
+    isError,
+  } = useResourcesQuery(
     selectedDashboard !== undefined,
     selectedDashboard?.service_type ?? '',
     {},
 
     RESOURCE_FILTER_MAP[selectedDashboard?.service_type ?? ''] ?? {}
   );
+  console.log('resources', resources);
 
   return (
     <GridLegacy container>
