@@ -1,8 +1,12 @@
 import { regionFactory } from '@linode/utilities';
 
+import { firewallFactory } from 'src/factories/firewalls';
+import { kubernetesClusterFactory } from 'src/factories/kubernetesCluster';
+
 import {
   getEndpointOptions,
   getFilteredResources,
+  getFilterFnForServiceType,
   getOfflineRegionFilteredResources,
   getRegionOptions,
   getRegionsIdRegionMap,
@@ -291,5 +295,112 @@ describe('getOfflineRegionFilteredResources', () => {
       { id: '1', region: 'us-east', label: 'r1' },
       { id: '2', region: 'us-west', label: 'r2' },
     ]);
+  });
+});
+
+describe('getFilterFnForServiceType', () => {
+  it('should return undefined for firewall service type without entityType', () => {
+    const filterFn = getFilterFnForServiceType('firewall');
+    expect(filterFn).toBeUndefined();
+  });
+
+  it('should filter firewall resources correctly for linode entityType', () => {
+    const mockFirewalls = [
+      firewallFactory.build({
+        entities: [
+          { id: 1, label: 'linode-1', type: 'linode', url: '' },
+          { id: 2, label: 'nb-1', type: 'nodebalancer', url: '' },
+        ],
+      }),
+      firewallFactory.build({
+        entities: [{ id: 3, label: 'nb-2', type: 'nodebalancer', url: '' }],
+      }),
+      firewallFactory.build({
+        entities: [{ id: 4, label: 'linode-2', type: 'linode', url: '' }],
+      }),
+    ];
+
+    const filterFn = getFilterFnForServiceType('firewall', 'linode');
+    expect(filterFn).toBeDefined();
+    expect(typeof filterFn).toBe('function');
+
+    if (filterFn) {
+      const result = filterFn(mockFirewalls);
+      // Should only include firewalls that have linode entities
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe(mockFirewalls[0].id);
+      expect(result[1].id).toBe(mockFirewalls[2].id);
+    }
+  });
+
+  it('should filter firewall resources correctly for nodebalancer entityType', () => {
+    const mockFirewalls = [
+      firewallFactory.build({
+        entities: [{ id: 1, label: 'linode-1', type: 'linode', url: '' }],
+      }),
+      firewallFactory.build({
+        entities: [{ id: 2, label: 'nb-1', type: 'nodebalancer', url: '' }],
+      }),
+    ];
+
+    const filterFn = getFilterFnForServiceType('firewall', 'nodebalancer');
+    expect(filterFn).toBeDefined();
+    expect(typeof filterFn).toBe('function');
+
+    if (filterFn) {
+      const result = filterFn(mockFirewalls);
+      // Should only include firewalls that have nodebalancer entities
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(mockFirewalls[1].id);
+    }
+  });
+
+  it('should filter LKE clusters to only enterprise tier', () => {
+    const mockClusters = [
+      kubernetesClusterFactory.build({
+        label: 'cluster-1',
+        tier: 'enterprise',
+      }),
+      kubernetesClusterFactory.build({ label: 'cluster-2', tier: 'standard' }),
+      kubernetesClusterFactory.build({
+        label: 'cluster-3',
+        tier: 'enterprise',
+      }),
+    ];
+
+    const filterFn = getFilterFnForServiceType('lke');
+    expect(filterFn).toBeDefined();
+
+    if (filterFn) {
+      const result = filterFn(mockClusters);
+      // Should only include enterprise tier clusters
+      expect(result).toHaveLength(2);
+      expect(result[0].label).toBe('cluster-1');
+      expect(result[1].label).toBe('cluster-3');
+      result.forEach((cluster) => {
+        if ('tier' in cluster) {
+          expect(cluster.tier).toBe('enterprise');
+        }
+      });
+    }
+  });
+
+  it('should return undefined for unsupported service types', () => {
+    const filterFn1 = getFilterFnForServiceType('linode');
+    expect(filterFn1).toBeUndefined();
+
+    const filterFn2 = getFilterFnForServiceType('dbaas');
+    expect(filterFn2).toBeUndefined();
+
+    const filterFn3 = getFilterFnForServiceType('nodebalancer');
+    expect(filterFn3).toBeUndefined();
+
+    const filterFn4 = getFilterFnForServiceType('objectstorage');
+    expect(filterFn4).toBeUndefined();
+  });
+
+  it('should return undefined for undefined service type', () => {
+    const filterFn = getFilterFnForServiceType(undefined);
+    expect(filterFn).toBeUndefined();
   });
 });

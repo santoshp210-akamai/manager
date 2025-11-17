@@ -801,3 +801,67 @@ export const firewallNodebalancerMetricCriteria =
       },
     ],
   });
+
+export const lkeMetricDefinitionResponse: MetricDefinition[] = [
+  {
+    label: 'Ready Worker Nodes',
+    metric: 'lke_e_ready_worker_nodes',
+    unit: 'Count',
+    metric_type: 'gauge',
+    scrape_interval: '300s',
+    is_alertable: true,
+    available_aggregate_functions: ['min', 'avg', 'max'],
+    dimensions: [],
+  },
+  {
+    label: 'Not Ready Worker Nodes',
+    metric: 'lke_e_not_ready_worker_nodes',
+    unit: 'Count',
+    metric_type: 'gauge',
+    scrape_interval: '300s',
+    is_alertable: true,
+    available_aggregate_functions: ['min', 'avg', 'max'],
+    dimensions: [],
+  },
+  {
+    label: 'Apiserver request rate',
+    metric: 'lke_e_apiserver_request_rate',
+    unit: 'rate',
+    metric_type: 'gauge',
+    scrape_interval: '300s',
+    is_alertable: true,
+    available_aggregate_functions: ['sum'],
+    dimensions: [],
+  },
+  {
+    label: 'Apiserver request error rate',
+    metric: 'lke_e_apiserver_request_error_rate',
+    unit: 'rate',
+    metric_type: 'gauge',
+    scrape_interval: '300s',
+    is_alertable: true,
+    available_aggregate_functions: ['sum'],
+    dimensions: [],
+  },
+  {
+    label: 'Apiserver availability',
+    metric: 'lke_e_apiserver_availability_percent',
+    unit: '%',
+    metric_type: 'gauge',
+    scrape_interval: '300s',
+    is_alertable: true,
+    available_aggregate_functions: ['min', 'avg', 'max'],
+    dimensions: [],
+  },
+];
+
+export const lkeMetricCriteriaFactory =
+  Factory.Sync.makeFactory<AlertDefinitionMetricCriteria>({
+    label: 'Ready Worker Nodes',
+    metric: 'lke_e_ready_worker_nodes',
+    unit: 'Count',
+    aggregate_function: 'min',
+    operator: 'lt',
+    threshold: 2,
+    dimension_filters: [],
+  });

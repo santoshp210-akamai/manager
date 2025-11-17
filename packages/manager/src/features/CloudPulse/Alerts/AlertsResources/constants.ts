@@ -116,6 +116,18 @@ export const serviceTypeBasedColumns: ServiceColumns<AlertInstance> = {
       sortingKey: 'region',
     },
   ],
+  lke: [
+    {
+      accessor: ({ label }) => label,
+      label: 'Entity',
+      sortingKey: 'label',
+    },
+    {
+      accessor: ({ region }) => region,
+      label: 'Region',
+      sortingKey: 'region',
+    },
+  ],
 };
 
 export const serviceToFiltersMap: Partial<
@@ -138,6 +150,7 @@ export const serviceToFiltersMap: Partial<
     { component: AlertsEndpointFilter, filterKey: 'endpoint' },
   ],
   blockstorage: [{ component: AlertsRegionFilter, filterKey: 'region' }],
+  lke: [{ component: AlertsRegionFilter, filterKey: 'region' }],
 };
 
 export const applicableAdditionalFilterKeys: AlertAdditionalFilterKey[] = [

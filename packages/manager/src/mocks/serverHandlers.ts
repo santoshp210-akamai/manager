@@ -79,6 +79,8 @@ import {
   linodeDiskFactory,
   lkeEnterpriseTypeFactory,
   lkeHighAvailabilityTypeFactory,
+  lkeMetricCriteriaFactory,
+  lkeMetricDefinitionResponse,
   lkeStandardAvailabilityTypeFactory,
   longviewActivePlanFactory,
   longviewClientFactory,
@@ -1160,6 +1162,16 @@ export const handlers = [
       tier: 'enterprise',
       region: 'ap-west',
     });
+    enterpriseClusters.push(
+      ...kubernetesAPIResponse.buildList(2, {
+        tier: 'enterprise',
+        region: 'us-east',
+      }),
+      ...kubernetesAPIResponse.buildList(3, {
+        tier: 'standard',
+        region: 'us-east',
+      })
+    );
     return HttpResponse.json(
       makeResourcePage([...clusters, ...enterpriseClusters])
     );
@@ -3091,6 +3103,16 @@ export const handlers = [
           rules: [firewallNodebalancerMetricCriteria.build()],
         },
       }),
+      alertFactory.build({
+        id: 250,
+        type: 'user',
+        label: 'lke-testing',
+        service_type: 'lke',
+        entity_ids: ['15', '17', '22'],
+        rule_criteria: {
+          rules: [lkeMetricCriteriaFactory.build()],
+        },
+      }),
     ];
     return HttpResponse.json(makeResourcePage(alerts));
   }),
@@ -3154,6 +3176,20 @@ export const handlers = [
             entity_ids: ['25'],
             rule_criteria: {
               rules: [firewallNodebalancerMetricCriteria.build()],
+            },
+          })
+        );
+      }
+      if (params.id === '250' && params.serviceType === 'lke') {
+        return HttpResponse.json(
+          alertFactory.build({
+            id: 250,
+            type: 'user',
+            label: 'lke-testing',
+            service_type: 'lke',
+            entity_ids: ['15', '17', '22'],
+            rule_criteria: {
+              rules: [lkeMetricCriteriaFactory.build()],
             },
           })
         );
@@ -3341,7 +3377,7 @@ export const handlers = [
       firewall: ['entity', 'account'],
       objectstorage: ['entity', 'account', 'region'],
       blockstorage: ['entity', 'account', 'region'],
-      lke: ['entity'],
+      lke: ['entity', 'account', 'region'],
     };
     const response = serviceTypesFactory.build({
       service_type: `${serviceType}`,
@@ -3742,6 +3778,9 @@ export const handlers = [
       }
       if (params.serviceType === 'blockstorage') {
         return HttpResponse.json({ data: blockStorageMetricRules });
+      }
+      if (params.serviceType === 'lke') {
+        return HttpResponse.json({ data: lkeMetricDefinitionResponse });
       }
       return HttpResponse.json(response);
     }

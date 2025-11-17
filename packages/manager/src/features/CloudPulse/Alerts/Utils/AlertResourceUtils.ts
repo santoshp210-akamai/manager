@@ -1,10 +1,15 @@
 import {
+  filterFirewallResources,
+  filterKubernetesClusters,
+} from '../../Utils/utils';
+import {
   alertAdditionalFilterKeyMap,
   applicableAdditionalFilterKeys,
 } from '../AlertsResources/constants';
 import { filterRegionByServiceType } from './utils';
 
 import type { CloudPulseResources } from '../../shared/CloudPulseResourcesSelect';
+import type { AssociatedEntityType } from '../../shared/types';
 import type { AlertInstance } from '../AlertsResources/DisplayAlertResources';
 import type {
   AlertAdditionalFilterKey,
@@ -12,7 +17,12 @@ import type {
   AlertFilterType,
   AlertResourceFiltersProps,
 } from '../AlertsResources/types';
-import type { CloudPulseServiceType, Region } from '@linode/api-v4';
+import type {
+  CloudPulseServiceType,
+  Firewall,
+  KubernetesCluster,
+  Region,
+} from '@linode/api-v4';
 
 interface FilterResourceProps {
   /**
@@ -382,4 +392,31 @@ export const getOfflineRegionFilteredResources = (
   return resources.filter(
     ({ region }) => region && supportedRegionIds.includes(region)
   );
+};
+
+/**
+ * Returns the appropriate filter function based on the service type and entity type
+ * @param serviceType The cloud pulse service type
+ * @param entityType The associated entity type (for firewall filtering)
+ * @returns A filter function or undefined if no filtering is needed
+ */
+export const getFilterFnForServiceType = (
+  serviceType: CloudPulseServiceType | undefined,
+  entityType?: AssociatedEntityType
+):
+  | ((
+      resources: Firewall[] | KubernetesCluster[]
+    ) => Firewall[] | KubernetesCluster[])
+  | undefined => {
+  if (serviceType === 'firewall' && entityType) {
+    return (resources: Firewall[]) =>
+      filterFirewallResources(resources, entityType);
+  }
+
+  if (serviceType === 'lke') {
+    return (resources: KubernetesCluster[]) =>
+      filterKubernetesClusters(resources);
+  }
+
+  return undefined;
 };

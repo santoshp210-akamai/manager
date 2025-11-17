@@ -7,7 +7,6 @@ import EntityIcon from 'src/assets/icons/entityIcons/alertsresources.svg';
 import { DebouncedSearchTextField } from 'src/components/DebouncedSearchTextField';
 import { useResourcesQuery } from 'src/queries/cloudpulse/resources';
 
-import { filterFirewallResources } from '../../Utils/utils';
 import { StyledPlaceholder } from '../AlertsDetail/AlertDetail';
 import { MULTILINE_ERROR_SEPARATOR } from '../constants';
 import { AlertListNoticeMessages } from '../Utils/AlertListNoticeMessages';
@@ -15,6 +14,7 @@ import {
   getAlertResourceFilterProps,
   getEndpointOptions,
   getFilteredResources,
+  getFilterFnForServiceType,
   getOfflineRegionFilteredResources,
   getRegionOptions,
   getRegionsIdRegionMap,
@@ -42,7 +42,6 @@ import type {
   AlertDefinitionType,
   CloudPulseServiceType,
   Filter,
-  Firewall,
   Region,
 } from '@linode/api-v4';
 
@@ -69,7 +68,7 @@ export interface AlertResourcesProp {
   /**
    * The entity type for firewall filtering (linode or nodebalancer)
    */
-  entityType?: 'linode' | 'nodebalancer' | null;
+  entityType?: 'linode' | 'nodebalancer';
 
   /**
    * The error text that needs to displayed incase needed
@@ -147,6 +146,7 @@ export const AlertResources = React.memo((props: AlertResourcesProp) => {
       serviceType === 'firewall' ||
       serviceType === 'objectstorage' ||
       serviceType === 'blockstorage' ||
+      serviceType === 'lke' ||
       !supportedRegionIds?.length
     ) {
       return undefined;
@@ -203,16 +203,15 @@ export const AlertResources = React.memo((props: AlertResourcesProp) => {
     serviceType,
     {},
     xFilterToBeApplied,
-    serviceType === 'firewall' && entityType ? entityType : undefined,
-    serviceType === 'firewall' && entityType
-      ? (resources: Firewall[]) =>
-          filterFirewallResources(resources, entityType)
-      : undefined
+    entityType, // since the entityType is undefined by default we can pass it directly
+    getFilterFnForServiceType(serviceType, entityType)
   );
 
   const regionFilteredResources = React.useMemo(() => {
     if (
-      (serviceType === 'objectstorage' || serviceType === 'blockstorage') &&
+      (serviceType === 'objectstorage' ||
+        serviceType === 'blockstorage' ||
+        serviceType === 'lke') &&
       resources &&
       supportedRegionIds
     ) {
