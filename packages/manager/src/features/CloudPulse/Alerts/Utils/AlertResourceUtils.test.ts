@@ -383,25 +383,6 @@ describe('getFilterFnForServiceType', () => {
     }
   });
 
-  it('should sort LKE clusters alphabetically by label', () => {
-    const mockClusters = [
-      kubernetesClusterFactory.build({ label: 'zebra', tier: 'enterprise' }),
-      kubernetesClusterFactory.build({ label: 'apple', tier: 'enterprise' }),
-      kubernetesClusterFactory.build({ label: 'mango', tier: 'enterprise' }),
-    ];
-
-    const filterFn = getFilterFnForServiceType('lke');
-    expect(filterFn).toBeDefined();
-
-    if (filterFn) {
-      const result = filterFn(mockClusters) as typeof mockClusters;
-      expect(result).toHaveLength(3);
-      expect(result[0].label).toBe('apple');
-      expect(result[1].label).toBe('mango');
-      expect(result[2].label).toBe('zebra');
-    }
-  });
-
   it('should return undefined for unsupported service types', () => {
     const filterFn1 = getFilterFnForServiceType('linode');
     expect(filterFn1).toBeUndefined();

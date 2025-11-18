@@ -144,10 +144,9 @@ export const AlertResources = React.memo((props: AlertResourcesProp) => {
   }, [regions, serviceType]);
   const xFilterToBeApplied: Filter | undefined = React.useMemo(() => {
     if (
-      serviceType === 'firewall' ||
-      serviceType === 'objectstorage' ||
-      serviceType === 'blockstorage' ||
-      serviceType === 'lke' ||
+      (serviceType === 'firewall' ||
+        (serviceType &&
+          OFFLINE_REGION_FILTERING_SERVICES.includes(serviceType))) &&
       !supportedRegionIds?.length
     ) {
       return undefined;
