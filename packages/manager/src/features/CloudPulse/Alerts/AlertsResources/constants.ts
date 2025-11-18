@@ -190,3 +190,9 @@ export const getSearchPlaceholderText = (
 
   return 'Search for an Entity';
 };
+
+export const OFFLINE_REGION_FILTERING_SERVICES: CloudPulseServiceType[] = [
+  'objectstorage',
+  'lke',
+  'blockstorage',
+];

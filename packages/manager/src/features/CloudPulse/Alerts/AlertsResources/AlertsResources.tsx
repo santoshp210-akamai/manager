@@ -26,6 +26,7 @@ import { AlertResourcesFilterRenderer } from './AlertsResourcesFilterRenderer';
 import {
   databaseTypeClassMap,
   getSearchPlaceholderText,
+  OFFLINE_REGION_FILTERING_SERVICES,
   serviceToFiltersMap,
 } from './constants';
 import { DisplayAlertResources } from './DisplayAlertResources';
@@ -209,9 +210,8 @@ export const AlertResources = React.memo((props: AlertResourcesProp) => {
 
   const regionFilteredResources = React.useMemo(() => {
     if (
-      (serviceType === 'objectstorage' ||
-        serviceType === 'blockstorage' ||
-        serviceType === 'lke') &&
+      serviceType &&
+      OFFLINE_REGION_FILTERING_SERVICES.includes(serviceType) &&
       resources &&
       supportedRegionIds
     ) {

@@ -325,7 +325,7 @@ describe('getFilterFnForServiceType', () => {
     expect(typeof filterFn).toBe('function');
 
     if (filterFn) {
-      const result = filterFn(mockFirewalls);
+      const result = filterFn(mockFirewalls) as typeof mockFirewalls;
       // Should only include firewalls that have linode entities
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe(mockFirewalls[0].id);
@@ -348,7 +348,7 @@ describe('getFilterFnForServiceType', () => {
     expect(typeof filterFn).toBe('function');
 
     if (filterFn) {
-      const result = filterFn(mockFirewalls);
+      const result = filterFn(mockFirewalls) as typeof mockFirewalls;
       // Should only include firewalls that have nodebalancer entities
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe(mockFirewalls[1].id);
@@ -372,16 +372,33 @@ describe('getFilterFnForServiceType', () => {
     expect(filterFn).toBeDefined();
 
     if (filterFn) {
-      const result = filterFn(mockClusters);
+      const result = filterFn(mockClusters) as typeof mockClusters;
       // Should only include enterprise tier clusters
       expect(result).toHaveLength(2);
       expect(result[0].label).toBe('cluster-1');
       expect(result[1].label).toBe('cluster-3');
       result.forEach((cluster) => {
-        if ('tier' in cluster) {
-          expect(cluster.tier).toBe('enterprise');
-        }
+        expect(cluster.tier).toBe('enterprise');
       });
+    }
+  });
+
+  it('should sort LKE clusters alphabetically by label', () => {
+    const mockClusters = [
+      kubernetesClusterFactory.build({ label: 'zebra', tier: 'enterprise' }),
+      kubernetesClusterFactory.build({ label: 'apple', tier: 'enterprise' }),
+      kubernetesClusterFactory.build({ label: 'mango', tier: 'enterprise' }),
+    ];
+
+    const filterFn = getFilterFnForServiceType('lke');
+    expect(filterFn).toBeDefined();
+
+    if (filterFn) {
+      const result = filterFn(mockClusters) as typeof mockClusters;
+      expect(result).toHaveLength(3);
+      expect(result[0].label).toBe('apple');
+      expect(result[1].label).toBe('mango');
+      expect(result[2].label).toBe('zebra');
     }
   });
 

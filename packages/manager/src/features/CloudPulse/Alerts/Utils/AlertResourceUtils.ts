@@ -10,6 +10,7 @@ import { filterRegionByServiceType } from './utils';
 
 import type { CloudPulseResources } from '../../shared/CloudPulseResourcesSelect';
 import type { AssociatedEntityType } from '../../shared/types';
+import type { QueryFunctionType } from '../../Utils/models';
 import type { AlertInstance } from '../AlertsResources/DisplayAlertResources';
 import type {
   AlertAdditionalFilterKey,
@@ -404,9 +405,7 @@ export const getFilterFnForServiceType = (
   serviceType: CloudPulseServiceType | undefined,
   entityType?: AssociatedEntityType
 ):
-  | ((
-      resources: Firewall[] | KubernetesCluster[]
-    ) => Firewall[] | KubernetesCluster[])
+  | ((resources: Firewall[] | KubernetesCluster[]) => QueryFunctionType)
   | undefined => {
   if (serviceType === 'firewall' && entityType) {
     return (resources: Firewall[]) =>

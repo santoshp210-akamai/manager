@@ -29,7 +29,13 @@ export const regions: Region[] = [
     site_type: 'core',
     status: 'ok',
     monitors: {
-      alerts: ['Linodes', 'Cloud Firewall', 'Object Storage', 'Block Storage', 'Kubernetes'],
+      alerts: [
+        'Linodes',
+        'Cloud Firewall',
+        'Object Storage',
+        'Block Storage',
+        'Kubernetes',
+      ],
       metrics: [
         'Object Storage',
         'Cloud Firewall',
