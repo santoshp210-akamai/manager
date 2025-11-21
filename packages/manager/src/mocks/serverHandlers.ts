@@ -3215,6 +3215,10 @@ export const handlers = [
             entity_ids: ['15', '17', '22'],
             rule_criteria: {
               rules: [lkeMetricCriteriaFactory.build()],
+            },
+          })
+        );
+      }
       if (params.id === '340' && params.serviceType === 'firewall') {
         return HttpResponse.json(
           alertFactory.build({
