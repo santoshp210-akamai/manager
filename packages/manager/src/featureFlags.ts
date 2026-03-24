@@ -95,6 +95,11 @@ interface AclpFlag {
    */
   bypassAccountCapabilities?: boolean;
   /**
+   * This property indicates whether to show the "Download CSV" icon in the alert details page or not
+   */
+  enableCSVDownload?: boolean;
+
+  /**
    * This property indicates whether the feature is enabled
    */
   enabled: boolean;
@@ -274,6 +279,7 @@ export interface Flags {
   promos: boolean;
   promotionalOffers: PromotionalOffer[];
   referralBannerText: BannerContent;
+  reserveIp: boolean;
   resourceLock: ResourceLockFlag;
   secureVmCopy: SecureVMCopy;
   selfServeBetas: boolean;
@@ -392,6 +398,7 @@ export type ProductInformationBannerLocation =
   | 'NodeBalancers'
   | 'Object Storage'
   | 'Placement Groups'
+  | 'Reserved IPs'
   | 'StackScripts'
   | 'Volumes'
   | 'VPC';
