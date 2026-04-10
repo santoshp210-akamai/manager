@@ -116,6 +116,10 @@ export const useIsACLPEnabled = (): {
   return { isACLPEnabled };
 };
 
+/** Stable empty map used as the default when no alertEntityMap is provided.
+ * Module-level so the reference never changes, preventing render loops. */
+const EMPTY_ALERT_ENTITY_MAP: Map<number, string[]> = new Map();
+
 /**
  * @param alerts List of alerts to be displayed
  * @param entityId Id of the selected entity
@@ -125,8 +129,12 @@ export const useIsACLPEnabled = (): {
 export const useContextualAlertsState = (
   alerts: Alert[],
   entityId?: string,
-  alertEntityMap: Map<number, string[]> = new Map()
+  alertEntityMap?: Map<number, string[]>
 ) => {
+  const map = React.useMemo(
+    () => alertEntityMap ?? EMPTY_ALERT_ENTITY_MAP,
+    [alertEntityMap]
+  );
   const calculateInitialState = React.useCallback(
     (alerts: Alert[], entityId?: string): CloudPulseAlertsPayload => {
       const initialStates: CloudPulseAlertsPayload = {
@@ -135,7 +143,7 @@ export const useContextualAlertsState = (
       };
 
       alerts.forEach((alert) => {
-        const entityIds = alertEntityMap.get(alert.id) ?? [];
+        const entityIds = map.get(alert.id) ?? [];
         const shouldInclude = entityId ? entityIds.includes(entityId) : false;
 
         if (shouldInclude) {
@@ -147,7 +155,7 @@ export const useContextualAlertsState = (
 
       return initialStates;
     },
-    [alertEntityMap]
+    [map]
   );
 
   const initialState = React.useMemo(

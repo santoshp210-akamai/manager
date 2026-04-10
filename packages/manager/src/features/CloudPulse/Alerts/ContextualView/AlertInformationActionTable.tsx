@@ -162,16 +162,27 @@ export const AlertInformationActionTable = (
   // For other services: fetch entities per alert via the entities API.
   const isLinodeService = serviceType === 'linode';
 
-  const { alertEntityMap: entitiesMap, isError: isEntitiesError } =
-    useAllEntitiesByAlertsQuery(
-      alerts,
-      !isLinodeService ? entityId : undefined
-    );
-
-  const { data: linode, isError: isLinodeError } = useLinodeQuery(
-    Number(entityId),
-    isLinodeService && !!entityId
+  const {
+    alertEntityMap: entitiesMap,
+    isError: isEntitiesError,
+    isLoading: isEntitiesLoading,
+  } = useAllEntitiesByAlertsQuery(
+    alerts,
+    !isLinodeService ? entityId : undefined
   );
+
+  const {
+    data: linode,
+    isError: isLinodeError,
+    isLoading: isLinodeLoading,
+  } = useLinodeQuery(Number(entityId), isLinodeService && !!entityId);
+
+  // True while we are still waiting for the data source that backs alertEntityMap.
+  // We gate the onToggleAlert notification on this so the parent never receives an
+  // empty-array payload before entity data has resolved.
+  const isEntityDataLoading = isLinodeService
+    ? isLinodeLoading
+    : isEntitiesLoading;
 
   const alertEntityMap = React.useMemo(() => {
     if (isLinodeService && linode && entityId) {
@@ -209,17 +220,33 @@ export const AlertInformationActionTable = (
   // Mutation to update alerts as per service type
   const updateAlerts = useAlertsMutation(serviceType, entityId ?? '');
 
+  // Keep refs to always have the latest values available in the unmount cleanup
+  // without those values being deps of the cleanup effect.
+  const onToggleAlertRef = React.useRef(onToggleAlert);
+  const isEditModeRef = React.useRef(isEditMode);
   React.useEffect(() => {
-    // To send initial state of alerts through toggle handler function in edit mode.
-    // This ensures the service owner receives the initial enabled-alert state immediately
-    // when the component is ready, regardless of whether any toggle action is performed.
-    if (isEditMode && onToggleAlert) {
+    onToggleAlertRef.current = onToggleAlert;
+    isEditModeRef.current = isEditMode;
+  });
+
+  // Send current enabled state to the parent whenever it changes in edit mode,
+  // but only after entity data has finished loading. This prevents sending an
+  // empty-array payload before async data resolves — the parent receives exactly
+  // one initial call with the real pre-checked state, then subsequent calls on
+  // every user toggle.
+  React.useEffect(() => {
+    if (isEditMode && onToggleAlert && !isEntityDataLoading) {
       onToggleAlert(enabledAlerts);
     }
+  }, [enabledAlerts, isEditMode, isEntityDataLoading, onToggleAlert]);
+
+  // Cleanup only on actual unmount — uses refs so this effect never re-runs
+  // mid-lifecycle, which would incorrectly send onToggleAlert({}, false) between
+  // renders while the component is still mounted.
+  React.useEffect(() => {
     return () => {
-      // Cleanup on unmount (For Edit flow)
-      if (isEditMode && onToggleAlert) {
-        onToggleAlert({}, false);
+      if (isEditModeRef.current && onToggleAlertRef.current) {
+        onToggleAlertRef.current({}, false);
       }
     };
   }, []);
@@ -246,7 +273,13 @@ export const AlertInformationActionTable = (
             variant: 'success',
           });
           onToggleAlert?.({}, false);
-          invalidateAclpAlerts(queryClient, serviceType, entityId, payload);
+          invalidateAclpAlerts(
+            queryClient,
+            serviceType,
+            entityId,
+            payload,
+            alertEntityMap
+          );
         })
         .catch(() => {
           enqueueSnackbar('Alerts changes were not saved, please try again.', {
