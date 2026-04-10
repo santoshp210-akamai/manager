@@ -1,4 +1,5 @@
 import { type Alert, type APIError } from '@linode/api-v4';
+import { useLinodeQuery } from '@linode/queries';
 import { Box, Button, TooltipIcon } from '@linode/ui';
 import { Grid, TableBody, TableHead } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
@@ -14,6 +15,7 @@ import { TableContentWrapper } from 'src/components/TableContentWrapper/TableCon
 import { TableRow } from 'src/components/TableRow';
 import { TableSortCell } from 'src/components/TableSortCell';
 import { ALERTS_BETA_PROMPT } from 'src/features/Linodes/constants';
+import { useAllEntitiesByAlertsQuery } from 'src/queries/cloudpulse/alerts';
 import {
   invalidateAclpAlerts,
   servicePayloadTransformerMap,
@@ -156,9 +158,39 @@ export const AlertInformationActionTable = (
 
   const alertsTableRef = React.useRef<HTMLTableElement>(null);
 
-  const _error = error
-    ? getAPIErrorOrDefault(error, 'Error while fetching the alerts')
-    : undefined;
+  // For linode: fetch the linode directly — it has alerts.system_alerts / user_alerts.
+  // For other services: fetch entities per alert via the entities API.
+  const isLinodeService = serviceType === 'linode';
+
+  const { alertEntityMap: entitiesMap, isError: isEntitiesError } =
+    useAllEntitiesByAlertsQuery(
+      alerts,
+      !isLinodeService ? entityId : undefined
+    );
+
+  const { data: linode, isError: isLinodeError } = useLinodeQuery(
+    Number(entityId),
+    isLinodeService && !!entityId
+  );
+
+  const alertEntityMap = React.useMemo(() => {
+    if (isLinodeService && linode && entityId) {
+      const map = new Map<number, string[]>();
+      [
+        ...(linode.alerts?.system_alerts ?? []),
+        ...(linode.alerts?.user_alerts ?? []),
+      ].forEach((alertId) => map.set(alertId, [entityId]));
+      return map;
+    }
+    return entitiesMap;
+  }, [isLinodeService, linode, entityId, entitiesMap]);
+
+  const isEntityError = isLinodeService ? isLinodeError : isEntitiesError;
+
+  const _error =
+    error || isEntityError
+      ? getAPIErrorOrDefault(error ?? [], 'Error while fetching the alerts')
+      : undefined;
   const { enqueueSnackbar } = useSnackbar();
   const [isDialogOpen, setIsDialogOpen] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -169,7 +201,7 @@ export const AlertInformationActionTable = (
     alert.type === 'system' ? 'system_alerts' : 'user_alerts';
 
   const { enabledAlerts, setEnabledAlerts, hasUnsavedChanges, initialState } =
-    useContextualAlertsState(alerts, entityId);
+    useContextualAlertsState(alerts, entityId, alertEntityMap);
 
   const isAccountOrRegionAlert = (alert: Alert) =>
     alert.scope === 'region' || alert.scope === 'account';

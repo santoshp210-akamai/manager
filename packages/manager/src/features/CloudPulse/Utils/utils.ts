@@ -119,11 +119,13 @@ export const useIsACLPEnabled = (): {
 /**
  * @param alerts List of alerts to be displayed
  * @param entityId Id of the selected entity
+ * @param alertEntityMap Map of alertId to entity IDs, fetched by the parent via useAllEntitiesByAlertsQuery
  * @returns enabledAlerts, setEnabledAlerts, hasUnsavedChanges, initialState, resetToInitialState
  */
 export const useContextualAlertsState = (
   alerts: Alert[],
-  entityId?: string
+  entityId?: string,
+  alertEntityMap: Map<number, string[]> = new Map()
 ) => {
   const calculateInitialState = React.useCallback(
     (alerts: Alert[], entityId?: string): CloudPulseAlertsPayload => {
@@ -133,10 +135,8 @@ export const useContextualAlertsState = (
       };
 
       alerts.forEach((alert) => {
-        // include alerts for which entityId is present in the alert's entity_ids
-        const shouldInclude = entityId
-          ? alert.entity_ids.includes(entityId)
-          : false;
+        const entityIds = alertEntityMap.get(alert.id) ?? [];
+        const shouldInclude = entityId ? entityIds.includes(entityId) : false;
 
         if (shouldInclude) {
           const payloadAlertType =
@@ -147,7 +147,7 @@ export const useContextualAlertsState = (
 
       return initialStates;
     },
-    []
+    [alertEntityMap]
   );
 
   const initialState = React.useMemo(
@@ -156,6 +156,11 @@ export const useContextualAlertsState = (
   );
 
   const [enabledAlerts, setEnabledAlerts] = React.useState(initialState);
+
+  // Sync enabled alerts when initialState updates (alertEntityMap resolves asynchronously)
+  React.useEffect(() => {
+    setEnabledAlerts(initialState);
+  }, [initialState]);
 
   // Reset function to sync with latest initial state
   const resetToInitialState = React.useCallback(() => {
