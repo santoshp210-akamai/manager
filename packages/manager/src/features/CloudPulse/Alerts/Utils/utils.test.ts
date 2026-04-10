@@ -113,7 +113,7 @@ it('should correctly convert an alert definition values to the required format',
     alertId: id,
     channel_ids: alert_channels.map((channel) => channel.id),
     description: description || undefined,
-    entity_ids: [],
+    entity_ids: undefined,
     label,
     rule_criteria: {
       rules: rule_criteria.rules.map((rule) => ({
