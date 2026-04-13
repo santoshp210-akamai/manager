@@ -8,9 +8,9 @@
             "scrape_interval": "60s",
             "is_alertable": true,
             "available_aggregate_functions": [
-                "avg",
                 "min",
-                "max"
+                "max",
+                "avg"
             ],
             "dimensions": [
                 {
@@ -51,9 +51,9 @@
             "scrape_interval": "60s",
             "is_alertable": true,
             "available_aggregate_functions": [
-                "avg",
                 "min",
-                "max"
+                "max",
+                "avg"
             ],
             "dimensions": [
                 {
