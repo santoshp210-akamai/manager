@@ -162,10 +162,10 @@
             "scrape_interval": "300s",
             "is_alertable": true,
             "available_aggregate_functions": [
-                "max",
-                "min",
                 "avg",
-                "sum"
+                "min",
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -196,10 +196,10 @@
             "scrape_interval": "300s",
             "is_alertable": false,
             "available_aggregate_functions": [
-                "max",
-                "min",
                 "avg",
-                "sum"
+                "min",
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -222,10 +222,10 @@
             "scrape_interval": "300s",
             "is_alertable": false,
             "available_aggregate_functions": [
-                "max",
-                "min",
                 "avg",
-                "sum"
+                "min",
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -325,10 +325,10 @@
             "scrape_interval": "300s",
             "is_alertable": true,
             "available_aggregate_functions": [
-                "max",
-                "min",
                 "avg",
-                "sum"
+                "min",
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -359,10 +359,10 @@
             "scrape_interval": "300s",
             "is_alertable": false,
             "available_aggregate_functions": [
-                "max",
-                "min",
                 "avg",
-                "sum"
+                "min",
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -385,10 +385,10 @@
             "scrape_interval": "300s",
             "is_alertable": false,
             "available_aggregate_functions": [
-                "max",
-                "min",
                 "avg",
-                "sum"
+                "min",
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {

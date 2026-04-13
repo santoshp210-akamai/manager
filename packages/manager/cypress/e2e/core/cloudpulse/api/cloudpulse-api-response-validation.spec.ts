@@ -5,6 +5,17 @@
 
 import type { Dashboard } from '@linode/api-v4';
 
+// -----------------------------
+// Single source of truth for all service configurations
+// -----------------------------
+const services = [
+  { type: 'dbaas', id: 1, hasMetricDefinitions: true },
+  { type: 'nodebalancer', id: 3, hasMetricDefinitions: true },
+  { type: 'firewall', id: 4, hasMetricDefinitions: true },
+  { type: 'objectstorage', id: 6, hasMetricDefinitions: true },
+  { type: 'netloadbalancer', id: 5, hasMetricDefinitions: false },
+];
+
 describe('CloudPulse API - Dashboards and Metric Definitions', () => {
   const apiRoot = Cypress.env('REACT_APP_API_ROOT');
   const token = Cypress.env('MANAGER_OAUTH');
@@ -19,7 +30,20 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
 
   const apiBaseUrl = apiRootToCloudMap[apiRoot];
 
-  const IGNORED_KEYS = [
+  // Guard: fail fast with a clear message if env is misconfigured
+  before(() => {
+    if (!apiBaseUrl) {
+      throw new Error(
+        `Unknown REACT_APP_API_ROOT: "${apiRoot}". ` +
+          `Expected one of: ${Object.keys(apiRootToCloudMap).join(', ')}`
+      );
+    }
+    if (!token) {
+      throw new Error('MANAGER_OAUTH env variable is not set.');
+    }
+  });
+
+  const IGNORED_KEYS: string[] = [
     'id',
     'uuid',
     'created',
@@ -30,7 +54,8 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
     'results',
     'is_alertable',
   ];
-  const UNORDERED_ARRAY_PATHS = [
+
+  const UNORDERED_ARRAY_PATHS: string[] = [
     'available_aggregate_functions',
     'dimensions.values',
   ];
@@ -44,34 +69,40 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
     path = '',
     ignoreKeys: string[] = IGNORED_KEYS,
     unorderedPaths: string[] = UNORDERED_ARRAY_PATHS
-  ) => {
+  ): void => {
     if (actual === undefined || expected === undefined) {
-      expect(actual, `assertpath "${path}" - undefined mismatch`).to.equal(
-        expected
-      );
+      expect(actual, `path "${path}" — undefined mismatch`).to.equal(expected);
       return;
     }
     if (actual === null || expected === null) {
-      expect(actual, `assertpath "${path}" - null mismatch`).to.equal(expected);
+      expect(actual, `path "${path}" — null mismatch`).to.equal(expected);
       return;
     }
 
-    if (Array.isArray(actual) && Array.isArray(expected)) {
+    const actualIsArray = Array.isArray(actual);
+    const expectedIsArray = Array.isArray(expected);
+
+    if (actualIsArray !== expectedIsArray) {
+      throw new Error(
+        `path "${path}" — type mismatch: one is array, the other is not`
+      );
+    }
+
+    if (actualIsArray && expectedIsArray) {
       const unordered = unorderedPaths.some((p) => path.endsWith(p));
+
       if (unordered) {
         const sortByStringify = (a: unknown, b: unknown) =>
           JSON.stringify(a).localeCompare(JSON.stringify(b));
-        const actualSorted = [...actual].sort(sortByStringify);
-        const expectedSorted = [...expected].sort(sortByStringify);
         expect(
-          actualSorted,
-          `assertpath "${path}" - unordered array mismatch`
-        ).to.deep.equal(expectedSorted);
+          [...actual].sort(sortByStringify),
+          `path "${path}" — unordered array mismatch`
+        ).to.deep.equal([...expected].sort(sortByStringify));
       } else {
-        expect(actual.length, `assertpath "${path}" - array length`).to.equal(
+        expect(actual.length, `path "${path}" — array length`).to.equal(
           expected.length
         );
-        actual.forEach((item, idx) => {
+        actual.forEach((item: unknown, idx: number) => {
           assertDeepEqual(
             item,
             expected[idx],
@@ -84,36 +115,27 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
       return;
     }
 
-    if (Array.isArray(actual) !== Array.isArray(expected)) {
-      throw new Error(
-        `assertpath "${path}" - type mismatch: one is array, the other isn't`
-      );
-    }
-
     if (typeof actual === 'object' && typeof expected === 'object') {
-      const actualKeys = Object.keys(actual)
+      const actualKeys = Object.keys(actual as object)
         .filter((k) => !ignoreKeys.includes(k))
         .sort();
-      const expectedKeys = Object.keys(expected)
+      const expectedKeys = Object.keys(expected as object)
         .filter((k) => !ignoreKeys.includes(k))
         .sort();
 
-      const extraInApi = actualKeys.filter((k) => !expectedKeys.includes(k));
-      const missingInApi = expectedKeys.filter((k) => !actualKeys.includes(k));
+      const extraInActual = actualKeys.filter((k) => !expectedKeys.includes(k));
+      const missingInActual = expectedKeys.filter(
+        (k) => !actualKeys.includes(k)
+      );
 
-      if (extraInApi.length || missingInApi.length) {
-        cy.log(`❌ Key mismatch at path "${path}"`);
-        if (extraInApi.length)
-          cy.log(`Extra keys: ${JSON.stringify(extraInApi)}`);
-        if (missingInApi.length)
-          cy.log(`Missing keys: ${JSON.stringify(missingInApi)}`);
+      if (extraInActual.length || missingInActual.length) {
         throw new Error(
-          `assertpath "${path}" - object keys mismatch.\n` +
-            (extraInApi.length
-              ? `Extra keys: ${extraInApi.join(', ')}\n`
+          `path "${path}" — object key mismatch.\n` +
+            (extraInActual.length
+              ? `Extra keys in response:  ${extraInActual.join(', ')}\n`
               : '') +
-            (missingInApi.length
-              ? `Missing keys: ${missingInApi.join(', ')}`
+            (missingInActual.length
+              ? `Missing keys in response: ${missingInActual.join(', ')}`
               : '')
         );
       }
@@ -130,108 +152,111 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
       return;
     }
 
-    expect(actual, `assertpath "${path}" - value`).to.equal(expected);
+    expect(actual, `path "${path}" — value mismatch`).to.equal(expected);
   };
 
   // -----------------------------
-  // Recursive timestamp/page stripping
+  // Strip ignored keys recursively (used for normalizing before comparison)
   // -----------------------------
-  const stripKeysRecursively = (
-    obj: unknown,
-    fieldsToRemove: string[]
-  ): unknown => {
-    if (Array.isArray(obj))
-      return obj.map((item) => stripKeysRecursively(item, fieldsToRemove));
+  const stripIgnoredKeys = (obj: unknown): unknown => {
+    if (Array.isArray(obj)) return obj.map(stripIgnoredKeys);
     if (typeof obj !== 'object' || obj === null) return obj;
 
-    const filtered = Object.fromEntries(
-      Object.entries(obj).filter(([key]) => !fieldsToRemove.includes(key))
-    );
-
     return Object.fromEntries(
-      Object.entries(filtered).map(([key, value]) => [
-        key,
-        stripKeysRecursively(value, fieldsToRemove),
-      ])
+      Object.entries(obj as Record<string, unknown>)
+        .filter(([key]) => !IGNORED_KEYS.includes(key))
+        .map(([key, value]) => [key, stripIgnoredKeys(value)])
     );
   };
 
-  const normalizeDashboard = (
-    data: Dashboard | Dashboard[] | { data: Dashboard[] }
-  ): Dashboard => {
-    if (Array.isArray(data)) return data[0];
-    if ('data' in data && Array.isArray(data.data)) return data.data[0];
-    return data as Dashboard;
-  };
-
-  // Log failures in CI
-  Cypress.on('fail', (err) => {
-    cy.log(`🔥 Assertion failed: ${err.message}`);
-    throw err;
-  });
-
-  const services = [
-    { type: 'dbaas', id: 1 },
-    { type: 'nodebalancer', id: 3 },
-    { type: 'firewall', id: 4 },
-    { type: 'objectstorage', id: 6 },
-    { type: 'netloadbalancer', id: 5 },
-  ];
+  // Fixture path helper
+  const fixturePath = (type: string, file: string): string =>
+    `${Cypress.config('fileServerFolder')}/cypress/e2e/core/cloudpulse/api-response/${type}-${file}.json`;
 
   // -----------------------------
   // Dashboards tests
   // -----------------------------
   context('Dashboards', () => {
-    [
-      'dbaas',
-      'firewall',
-      'nodebalancer',
-      'objectstorage',
-      'netloadbalancer',
-    ].forEach((type) => {
-      it(`should fetch ${type.toUpperCase()} dashboards`, () => {
-        const url = `${apiBaseUrl}/v4beta/monitor/services/${type}/dashboards`;
-        const templatePath = `${Cypress.config('fileServerFolder')}/cypress/e2e/core/cloudpulse/api-response/${type}-dashboard-response.json`;
+    // --- List by service type ---
+    context('List dashboards by service type', () => {
+      services.forEach(({ type }) => {
+        it(`should fetch ${type.toUpperCase()} dashboards`, () => {
+          const url = `${apiBaseUrl}/v4beta/monitor/services/${type}/dashboards`;
 
-        cy.log(`Using Cloud URL*********: ${apiBaseUrl}`);
+          cy.readFile(fixturePath(type, 'dashboard-response')).then(
+            (templateData) => {
+              const templateList: Dashboard[] =
+                templateData?.data ?? templateData;
+              expect(
+                Array.isArray(templateList),
+                `fixture for ${type} must have a "data" array`
+              ).to.be.true;
 
-        cy.readFile(templatePath).then((templateData) => {
-          cy.request({
-            method: 'GET',
-            url,
-            headers: { Authorization: `Bearer ${token}` },
-          }).then((res) => {
-            expect(res.status).to.eq(200);
-            expect(res.body).to.have.property('data');
-            assertDeepEqual(res.body.data, templateData.data);
-          });
+              cy.request({
+                method: 'GET',
+                url,
+                headers: { Authorization: `Bearer ${token}` },
+              }).then((res) => {
+                expect(res.status).to.eq(200);
+                expect(res.body).to.have.property('data').that.is.an('array');
+                expect(res.body.data.length, 'dashboard list length').to.equal(
+                  templateList.length
+                );
+                assertDeepEqual(res.body.data, templateList);
+              });
+            }
+          );
         });
       });
     });
 
-    services.forEach(({ type, id }) => {
-      it(`should fetch ${type.toUpperCase()} dashboard by ID`, () => {
-        const url = `${apiBaseUrl}/v4beta/monitor/dashboards/${id}`;
-        const templatePath = `${Cypress.config('fileServerFolder')}/cypress/e2e/core/cloudpulse/api-response/${type}-dashboard-response.json`;
+    // --- Fetch by dashboard ID (ID discovered dynamically from the list endpoint) ---
+    context('Fetch dashboard by ID', () => {
+      services.forEach(({ type }) => {
+        it(`should fetch ${type.toUpperCase()} dashboard by ID`, () => {
+          const listUrl = `${apiBaseUrl}/v4beta/monitor/services/${type}/dashboards`;
 
-        cy.readFile(templatePath).then((templateData) => {
-          cy.request({
-            method: 'GET',
-            url,
-            headers: { Authorization: `Bearer ${token}` },
-          }).then((res) => {
-            expect(res.status).to.eq(200);
-            const apiNormalized = stripKeysRecursively(
-              normalizeDashboard(res.body),
-              IGNORED_KEYS
-            );
-            const templateNormalized = stripKeysRecursively(
-              normalizeDashboard(templateData),
-              IGNORED_KEYS
-            );
+          cy.readFile(fixturePath(type, 'dashboard-response')).then(
+            (templateData) => {
+              const templateList: Dashboard[] =
+                templateData?.data ?? templateData;
+              expect(
+                Array.isArray(templateList) && templateList.length > 0,
+                `fixture for ${type} must have at least one dashboard`
+              ).to.be.true;
 
-            assertDeepEqual(apiNormalized, templateNormalized);
-          });
+              const templateFirst = stripIgnoredKeys(
+                templateList[0]
+              ) as Dashboard;
+
+              // Derive the ID from the live list so tests stay env-agnostic
+              cy.request({
+                method: 'GET',
+                url: listUrl,
+                headers: { Authorization: `Bearer ${token}` },
+              }).then((listRes) => {
+                expect(listRes.status).to.eq(200);
+                expect(listRes.body.data)
+                  .to.be.an('array')
+                  .with.length.greaterThan(0);
+
+                const dashboardId: number = listRes.body.data[0].id;
+                const byIdUrl = `${apiBaseUrl}/v4beta/monitor/dashboards/${dashboardId}`;
+
+                cy.request({
+                  method: 'GET',
+                  url: byIdUrl,
+                  headers: { Authorization: `Bearer ${token}` },
+                }).then((res) => {
+                  expect(res.status).to.eq(200);
+                  const actualNormalized = stripIgnoredKeys(
+                    res.body
+                  ) as Dashboard;
+                  assertDeepEqual(actualNormalized, templateFirst);
+                });
+              });
+            }
+          );
         });
       });
     });
@@ -241,29 +266,32 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
   // Metric Definitions tests
   // -----------------------------
   context('Metric Definitions', () => {
-    ['dbaas', 'objectstorage', 'firewall', 'nodebalancer'].forEach((type) => {
-      it(`should fetch ${type.toUpperCase()} metric definitions`, () => {
-        const url = `${apiBaseUrl}/v4beta/monitor/services/${type}/metric-definitions`;
-        const templatePath = `${Cypress.config('fileServerFolder')}/cypress/e2e/core/cloudpulse/api-response/${type}-metric-definition.json`;
+    services
+      .filter(({ hasMetricDefinitions }) => hasMetricDefinitions)
+      .forEach(({ type }) => {
+        it(`should fetch ${type.toUpperCase()} metric definitions`, () => {
+          const url = `${apiBaseUrl}/v4beta/monitor/services/${type}/metric-definitions`;
 
-        cy.readFile(templatePath).then((templateData) => {
-          cy.request({
-            method: 'GET',
-            url,
-            headers: { Authorization: `Bearer ${token}` },
-          }).then((res) => {
-            expect(res.status).to.eq(200);
-            expect(res.body).to.have.property('data');
-            assertDeepEqual(
-              res.body.data,
-              templateData.data,
-              '',
-              IGNORED_KEYS,
-              UNORDERED_ARRAY_PATHS
-            );
-          });
+          cy.readFile(fixturePath(type, 'metric-definition')).then(
+            (templateData) => {
+              cy.request({
+                method: 'GET',
+                url,
+                headers: { Authorization: `Bearer ${token}` },
+              }).then((res) => {
+                expect(res.status).to.eq(200);
+                expect(res.body).to.have.property('data').that.is.an('array');
+                assertDeepEqual(
+                  res.body.data,
+                  templateData.data,
+                  '',
+                  IGNORED_KEYS,
+                  UNORDERED_ARRAY_PATHS
+                );
+              });
+            }
+          );
         });
       });
-    });
   });
 });

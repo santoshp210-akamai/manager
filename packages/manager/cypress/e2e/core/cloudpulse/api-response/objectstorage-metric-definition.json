@@ -6,12 +6,12 @@
             "unit": "Bytes",
             "metric_type": "gauge",
             "scrape_interval": "3600s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "avg",
                 "min",
-                "max",
-                "sum"
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -27,12 +27,12 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "3600s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "avg",
                 "min",
-                "max",
-                "sum"
+                "sum",
+                "max"
             ],
             "dimensions": [
                 {
@@ -48,7 +48,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -78,7 +78,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -107,7 +107,7 @@
             "unit": "Bytes",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -125,7 +125,7 @@
             "unit": "Bytes",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -143,7 +143,7 @@
             "unit": "Bps",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -161,7 +161,7 @@
             "unit": "Bps",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -179,7 +179,7 @@
             "unit": "ms",
             "metric_type": "gauge",
             "scrape_interval": "900s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "avg"
             ],
@@ -197,7 +197,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -215,7 +215,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -233,7 +233,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -251,7 +251,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -269,7 +269,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -287,7 +287,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -305,7 +305,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -323,7 +323,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -341,7 +341,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -359,7 +359,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],
@@ -377,7 +377,7 @@
             "unit": "Count",
             "metric_type": "gauge",
             "scrape_interval": "60s",
-            "is_alertable": false,
+            "is_alertable": true,
             "available_aggregate_functions": [
                 "sum"
             ],

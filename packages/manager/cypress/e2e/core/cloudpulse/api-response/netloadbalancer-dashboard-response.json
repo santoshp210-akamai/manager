@@ -4,12 +4,12 @@
             "id": 5,
             "type": "standard",
             "service_type": "netloadbalancer",
-            "label": "Network Load Balancer",
+            "label": "Traffic Overview",
             "group_by": [
                 "entity_id"
             ],
             "created": "2025-09-15T03:24:08",
-            "updated": "2025-11-14T01:11:36",
+            "updated": "2026-04-10T04:46:34",
             "widgets": [
                 {
                     "metric": "nlb_ingress_traffic",

@@ -4,14 +4,14 @@
             "id": 4,
             "type": "standard",
             "service_type": "firewall",
-            "label": "Cloud Firewall for Linodes",
+            "label": "Connection Metrics",
             "group_by": [
                 "entity_id",
                 "linode_id",
                 "interface_id"
             ],
-            "created": "2025-06-25T01:24:14",
-            "updated": "2025-11-07T07:31:09",
+            "created": "2025-08-18T03:02:58",
+            "updated": "2026-04-10T04:46:34",
             "widgets": [
                 {
                     "metric": "fw_active_connections",
@@ -109,13 +109,13 @@
             "id": 8,
             "type": "standard",
             "service_type": "firewall",
-            "label": "Cloud Firewall for NodeBalancer",
+            "label": "Ingress Activity",
             "group_by": [
                 "entity_id",
                 "nodebalancer_id"
             ],
-            "created": "2025-10-07T01:11:59",
-            "updated": "2025-11-14T02:03:09",
+            "created": "2025-11-19T06:18:45",
+            "updated": "2026-04-10T04:46:34",
             "widgets": [
                 {
                     "metric": "nb_ingress_bytes_accepted",

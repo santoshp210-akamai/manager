@@ -240,9 +240,9 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
           .should('be.visible')
           .should('have.text', 'endpoint_type-E2-us-sea-2.linodeobjects.com');
 
-        cy.get('[data-qa-value="Buckets bucket-2.us-ord-2.linodeobjects.com"]')
+        cy.get('[data-qa-value="Buckets bucket-2[us-ord-2]"]')
           .should('be.visible')
-          .should('have.text', 'bucket-2.us-ord-2.linodeobjects.com');
+          .should('have.text', 'bucket-2[us-ord-2]');
       });
 
     ui.button.findByTitle('Filters').click();
@@ -286,7 +286,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
         .findByLabel('Buckets')
         .parent()
         .find('[role="button"][data-tag-index="0"]')
-        .should('have.text', 'bucket-2.us-ord-2.linodeobjects.com');
+        .should('have.text', 'bucket-2[us-ord-2]');
 
       // Refresh button (tooltip)
       cy.get('[data-qa-tooltip="Refresh"]').should('exist');
@@ -355,9 +355,9 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
           '[data-qa-value="Endpoints endpoint_type-E2-us-sea-2.linodeobjects.com"]'
         ).should('not.exist');
 
-        cy.get(
-          '[data-qa-value="Buckets bucket-2.us-ord-2.linodeobjects.com"]'
-        ).should('not.exist');
+        cy.get('[data-qa-value="Buckets bucket-2[us-ord-2]"]').should(
+          'not.exist'
+        );
       });
 
     cy.wait('@updatePreference').then(({ request, response }) => {
@@ -406,9 +406,9 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
           '[data-qa-value="Endpoints endpoint_type-E2-us-sea-2.linodeobjects.com"]'
         ).should('not.exist');
 
-        cy.get(
-          '[data-qa-value="Buckets bucket-2.us-ord-2.linodeobjects.com"]'
-        ).should('not.exist');
+        cy.get('[data-qa-value="Buckets bucket-2[us-ord-2]"]').should(
+          'not.exist'
+        );
       });
 
     cy.wait('@updatePreference').then(({ request, response }) => {
@@ -471,9 +471,9 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
           '[data-qa-value="Endpoints endpoint_type-E2-us-sea-2.linodeobjects.com"]'
         ).should('be.visible');
 
-        cy.get(
-          '[data-qa-value="Buckets bucket-2.us-ord-2.linodeobjects.com"]'
-        ).should('not.exist');
+        cy.get('[data-qa-value="Buckets bucket-2[us-ord-2]"]').should(
+          'not.exist'
+        );
       });
     cy.wait('@updatePreference').then(({ request, response }) => {
       const responseBody =

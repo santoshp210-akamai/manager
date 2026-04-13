@@ -17,6 +17,9 @@ export const productInformationBannerFactory =
   });
 
 export const flagsFactory = Factory.Sync.makeFactory<Partial<Flags>>({
+  objectStorageContextualMetrics: true,
+  blockStorageContextualMetrics: true,
+
   aclp: {
     beta: true,
     enabled: true,
