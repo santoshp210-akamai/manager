@@ -333,7 +333,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
     ui.autocomplete
       .findByLabel('Buckets')
       .should('be.visible')
-      .type('bucket-2.us-ord-2.linodeobjects.com{enter}');
+      .type('bucket-2[us-ord-2]{enter}');
 
     ui.autocomplete.findByLabel('Buckets').click();
 

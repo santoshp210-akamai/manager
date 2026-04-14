@@ -4,12 +4,12 @@
             "id": 3,
             "type": "standard",
             "service_type": "nodebalancer",
-            "label": "NodeBalancer",
+            "label": "Traffic Overview",
             "group_by": [
                 "entity_id"
             ],
-            "created": "2025-06-05T05:02:14",
-            "updated": "2025-10-07T01:16:40",
+            "created": "2025-08-12T02:41:58",
+            "updated": "2026-04-10T04:46:34",
             "widgets": [
                 {
                     "metric": "nb_ingress_traffic_rate",

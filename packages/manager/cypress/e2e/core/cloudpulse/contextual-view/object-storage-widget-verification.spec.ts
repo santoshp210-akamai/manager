@@ -109,7 +109,7 @@ const metricDefinitions = metrics.map(({ name, title, unit }) =>
 const mockRegion = regionFactory.build({
   capabilities: ['Object Storage'],
   id: 'us-ord',
-  label: 'us-ord-1',
+  label: 'us-ord',
   monitors: {
     metrics: ['Object Storage'],
     alerts: [],
@@ -156,11 +156,11 @@ const getWidgetLegendRowValuesFromResponse = (
     max: formatValue(max),
   };
 };
-// eslint-disable-next-line sonarjs/no-skipped-tests
-describe.skip('Integration Tests for Object Storage Dashboard - Group By and Widget Verification', () => {
+
+describe('Integration Tests for Object Storage Dashboard - Group By and Widget Verification', () => {
   const bucketMock = [
     objectStorageBucketFactory.build({
-      cluster: 'us-ord-1',
+      cluster: 'us-ord',
       region: mockRegion.id,
       label: 'bucket-1',
       endpoint_type: 'E3',
@@ -181,6 +181,7 @@ describe.skip('Integration Tests for Object Storage Dashboard - Group By and Wid
 
   beforeEach(() => {
     mockAppendFeatureFlags(flagsFactory.build());
+
     mockGetAccount(accountFactory.build({ capabilities: ['Object Storage'] }));
 
     mockGetBuckets(bucketMock).as('getBuckets');
@@ -252,6 +253,7 @@ describe.skip('Integration Tests for Object Storage Dashboard - Group By and Wid
     // Stub metrics API calls for dashboard group by changes
     mockCreateCloudPulseMetrics(serviceType, metricsAPIResponsePayload, {
       entity_id: '1',
+      bucket: 'bucket-1',
     }).as('refreshMetrics');
 
     // Validate legend rows (pre "Group By")
@@ -339,9 +341,9 @@ describe.skip('Integration Tests for Object Storage Dashboard - Group By and Wid
       cy.get(widgetSelector)
         .should('be.visible')
         .within(() => {
-          cy.get('[data-qa-graph-row-title="1"]')
+          cy.get('[data-qa-graph-row-title="1 | bucket-1"]')
             .should('be.visible')
-            .and('have.text', '1');
+            .and('have.text', '1 | bucket-1');
         });
     });
   });
