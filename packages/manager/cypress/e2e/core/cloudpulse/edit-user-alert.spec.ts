@@ -22,6 +22,7 @@ import {
   mockGetCloudPulseMetricDefinitions,
   mockGetCloudPulseServiceByType,
   mockGetCloudPulseServices,
+  mockGetEntitiesByAlertId,
   mockUpdateAlertDefinitions,
 } from 'support/intercepts/cloudpulse';
 import { mockGetDatabases } from 'support/intercepts/databases';
@@ -36,6 +37,7 @@ import {
   cpuRulesFactory,
   dashboardMetricFactory,
   databaseFactory,
+  entitiesFactory,
   flagsFactory,
   memoryRulesFactory,
   notificationChannelFactory,
@@ -64,7 +66,6 @@ const alertDetails = alertFactory.build({
   alert_channels: [{ id: 1 }],
   created_by: 'user1',
   description: 'My Custom Description',
-  entity_ids: ['2'],
   label: 'Alert-2',
   rule_criteria: {
     rules: [cpuRulesFactory.build(), memoryRulesFactory.build()],
@@ -129,6 +130,11 @@ const services = serviceTypesFactory.build({
   alert: serviceAlertFactory.build(),
   regions: 'us-ord,us-east',
 });
+
+const alertEntities = entitiesFactory
+  .buildList(1)
+  .map((e) => ({ ...e, id: '2' }));
+
 describe('Integration Tests for Edit Alert', () => {
   /*
    * - Confirms that the Edit Alert page loads with the correct alert details.
@@ -153,6 +159,7 @@ describe('Integration Tests for Edit Alert', () => {
     mockGetCloudPulseServiceByType('dbaas', services);
     mockGetCloudPulseMetricDefinitions(service_type, metricDefinitions);
     mockGetDatabases(databases).as('getDatabases');
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
     mockGetAlertChannels([notificationChannels]);
   });
 
@@ -429,7 +436,6 @@ describe('Integration Tests for Edit Alert', () => {
         alert_channels: [{ id: 1 }],
         created_by: 'user1',
         description: 'My Custom Description',
-        entity_ids: ['2'],
         label: 'Alert-2',
         rule_criteria: {
           rules: [cpuRulesFactory.build(), memoryRulesFactory.build()],
@@ -458,6 +464,7 @@ describe('Integration Tests for Edit Alert', () => {
       mockCreateAlertDefinition(service_type, alertDetails).as(
         'createAlertDefinition'
       );
+      mockGetEntitiesByAlertId(service_type, id, alertEntities);
       cy.visitWithLogin(`/alerts/definitions/edit/${service_type}/${id}`);
       cy.wait('@getAlertDefinitions');
       cy.findByLabelText('Name').clear();

@@ -1,4 +1,4 @@
-import { Box, CircleProgress, Stack, Typography } from '@linode/ui';
+import { Box, Stack, Typography } from '@linode/ui';
 import { useTheme } from '@mui/material';
 import React from 'react';
 
@@ -74,25 +74,13 @@ export const ScopeContentRenderer = (props: ScopeContentRendererProps) => {
             );
 
           case 'entity':
-            if (isEntitiesLoading) {
-              return <CircleProgress />;
-            }
-            if (isEntitiesError) {
-              return (
-                <AlertResources
-                  alertClass={alertClass}
-                  alertResourceIds={[]}
-                  alertType={type}
-                  errorText="Error loading entities. Please try again."
-                  serviceType={serviceType}
-                />
-              );
-            }
             return (
               <AlertResources
                 alertClass={alertClass}
                 alertResourceIds={entityIds}
                 alertType={type}
+                isEntitiesError={isEntitiesError}
+                isEntitiesLoading={isEntitiesLoading}
                 serviceType={serviceType}
               />
             );

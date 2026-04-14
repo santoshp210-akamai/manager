@@ -16,6 +16,7 @@ import {
   mockGetAlertChannels,
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
+  mockGetEntitiesByAlertId,
 } from 'support/intercepts/cloudpulse';
 import { mockGetDatabases } from 'support/intercepts/databases';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
@@ -28,6 +29,7 @@ import {
   alertFactory,
   alertRulesFactory,
   databaseFactory,
+  entitiesFactory,
   notificationChannelFactory,
 } from 'src/factories';
 import {
@@ -71,7 +73,6 @@ const databases: Database[] = databaseFactory.buildList(5).map((db, index) => ({
 }));
 
 const alertDetails = alertFactory.build({
-  entity_ids: databases.slice(0, 4).map((db) => db.id.toString()),
   rule_criteria: { rules: alertRulesFactory.buildList(2) },
   service_type: 'dbaas',
   severity: 1,
@@ -85,6 +86,11 @@ const alertDetails = alertFactory.build({
 const { id, label, rule_criteria, service_type } = alertDetails;
 const { rules } = rule_criteria;
 const notificationChannels = notificationChannelFactory.build();
+const alertEntities = databases
+  .slice(0, 4)
+  .map((db) =>
+    entitiesFactory.build({ id: String(db.id), label: db.label, type: 'dbaas' })
+  );
 
 const verifyRowOrder = (expectedIds: string[]) => {
   cy.get('[data-qa-alert-row]').then(($rows) => {
@@ -192,6 +198,7 @@ describe('Integration Tests for Alert Show Detail Page', () => {
     );
     mockGetDatabases(databases).as('getMockedDbaasDatabases');
     mockGetAlertChannels([notificationChannels]);
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
   });
 
   it('navigates to the Show Details page from the list page', () => {
@@ -373,7 +380,6 @@ describe('Integration Tests for Alert Show Detail Page', () => {
       const alertDetails = alertFactory.build({
         id: 2,
         label: 'Alert-1',
-        entity_ids: databases.slice(0, 4).map((db) => db.id.toString()),
         rule_criteria: { rules: alertRulesFactory.buildList(2) },
         service_type: 'dbaas',
         severity: 1,
@@ -396,10 +402,18 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         created,
         updated,
       } = alertDetails;
+      const localAlertEntities = databases.slice(0, 4).map((db) =>
+        entitiesFactory.build({
+          id: String(db.id),
+          label: db.label,
+          type: 'dbaas',
+        })
+      );
       mockGetAllAlertDefinitions([alertDetails]).as('getAlertDefinitionsList');
       mockGetAlertDefinitions(service_type, id, alertDetails).as(
         'getDBaaSAlertDefinitions'
       );
+      mockGetEntitiesByAlertId(service_type, id, localAlertEntities);
       cy.visitWithLogin(`/alerts/definitions/detail/${service_type}/${id}`);
       cy.wait(['@getDBaaSAlertDefinitions']);
 

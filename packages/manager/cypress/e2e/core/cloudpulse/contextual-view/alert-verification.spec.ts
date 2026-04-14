@@ -112,7 +112,6 @@ const alerts = alertConfigs.flatMap((config) => {
   // Create the alert
   return alertFactory.build({
     created_by: config.created_by,
-    entity_ids: ['1'],
     rule_criteria: {
       rules: [
         {
@@ -197,7 +196,26 @@ describe('Alert Contextual view for linode', () => {
    */
   // Reason: Checking by anantha
   it('should verify sorting, alert management, and search functionality for contextual view of entity listing.', () => {
-    mockLinodes[0] = { ...mockLinodes[0], id: 1, region: mockRegion.id };
+    // For linode service type, the component uses useLinodeQuery to read
+    // linode.alerts.system_alerts / user_alerts (not the entities API).
+    // Set the entity-scoped alert IDs so their toggles are pre-checked.
+    const systemAlertIds = alerts
+      .filter((a) => a.scope === 'entity' && a.type === 'system')
+      .map((a) => a.id);
+    const userAlertIds = alerts
+      .filter((a) => a.scope === 'entity' && a.type === 'user')
+      .map((a) => a.id);
+
+    mockLinodes[0] = {
+      ...mockLinodes[0],
+      id: 1,
+      region: mockRegion.id,
+      alerts: {
+        ...mockLinodes[0].alerts,
+        system_alerts: systemAlertIds,
+        user_alerts: userAlertIds,
+      },
+    };
     mockGetLinodes(mockLinodes).as('getLinodes');
     mockGetLinode(mockLinodes[0].id, mockLinodes[0]).as('getLinode');
     mockAppendFeatureFlags(flagsFactory.build());

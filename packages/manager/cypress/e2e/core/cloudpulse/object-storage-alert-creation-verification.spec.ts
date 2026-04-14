@@ -192,7 +192,6 @@ const mockProfile = profileFactory.build({
 const mockAlerts = alertFactory.build({
   label: 'Alert-1',
   service_type: 'objectstorage',
-  entity_ids: ['2'],
 });
 
 const CREATE_ALERT_PAGE_URL = '/alerts/definitions/create';
@@ -314,7 +313,6 @@ describe('object storage alert configured successfully', () => {
         created_by: 'user1',
         description: 'My Custom Description',
         label: 'Alert-1',
-        entity_ids: ['2'],
         rule_criteria: {
           rules: [
             metricBuilder.build({
@@ -714,7 +712,7 @@ describe('object storage alert configured successfully', () => {
             expect(resBody.label).to.eq(reqBody.label);
             expect(resBody.class).to.eq('dedicated');
             expect(resBody.service_type).to.eq('objectstorage');
-            expect(resBody.entity_ids).to.deep.eq(['2']);
+            expect(resBody.entities).to.exist;
             expect(resBody.scope).to.eq(reqBody.scope);
 
             cy.url().should('endWith', '/alerts/definitions');

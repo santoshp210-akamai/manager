@@ -21,6 +21,7 @@ import {
   mockGetCloudPulseMetricDefinitions,
   mockGetCloudPulseServiceByType,
   mockGetCloudPulseServices,
+  mockGetEntitiesByAlertId,
   mockUpdateAlertDefinitions,
 } from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
@@ -32,6 +33,7 @@ import { ui } from 'support/ui';
 import {
   accountFactory,
   alertFactory,
+  entitiesFactory,
   firewallFactory,
   firewallMetricDefinitionsResponse,
   firewallMetricRulesFactory,
@@ -62,7 +64,6 @@ const alertDetails = alertFactory.build({
   alert_channels: [{ id: 1 }],
   created_by: 'user1',
   description: 'My Custom Description',
-  entity_ids: ['2'],
   label: 'Alert-2',
 
   rule_criteria: {
@@ -185,6 +186,10 @@ const mockLinodes: Linode[] = [
   }),
 ];
 
+const alertEntities = entitiesFactory
+  .buildList(1)
+  .map((e) => ({ ...e, id: '2' }));
+
 describe('Integration Tests for Edit Alert', () => {
   /*
    * - Confirms that the Edit Alert page loads with the correct alert details.
@@ -213,6 +218,7 @@ describe('Integration Tests for Edit Alert', () => {
     mockGetFirewalls(mockFirewalls);
     mockGetLinodes(mockLinodes);
     mockGetAlertChannels([notificationChannels]);
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
   });
 
   // Define an interface for rule values
@@ -412,7 +418,6 @@ describe('Integration Tests for Edit Alert', () => {
           alert_channels: [{ id: 1 }],
           created_by: 'user1',
           description: 'My Custom Description',
-          entity_ids: ['2'],
           label: 'Alert-2',
           rule_criteria: {
             rules: [
@@ -452,6 +457,7 @@ describe('Integration Tests for Edit Alert', () => {
         mockCreateAlertDefinition(service_type, alertDetails).as(
           'createAlertDefinition'
         );
+        mockGetEntitiesByAlertId(service_type, id, alertEntities);
         cy.visitWithLogin(`/alerts/definitions/edit/${service_type}/${id}`);
         cy.wait('@getAlertDefinitions');
         cy.findByLabelText('Name').clear();
@@ -547,7 +553,6 @@ describe('Integration Tests for Edit Alert', () => {
       alert_channels: [{ id: 1 }],
       created_by: 'user1',
       description: 'My Custom Description',
-      entity_ids: ['2'],
       label: 'Alert-2',
       rule_criteria: {
         rules: [
@@ -587,6 +592,7 @@ describe('Integration Tests for Edit Alert', () => {
     mockCreateAlertDefinition(service_type, alertDetails).as(
       'createAlertDefinition'
     );
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
 
     // Visit Edit Alert page
     cy.visitWithLogin(`/alerts/definitions/edit/${service_type}/${id}`);
@@ -666,7 +672,6 @@ describe('Integration Tests for Edit Alert', () => {
       alert_channels: [{ id: 1 }],
       created_by: 'user1',
       description: 'My Custom Description',
-      entity_ids: ['2'],
       label: 'Alert-2',
       rule_criteria: {
         rules: [
@@ -706,6 +711,7 @@ describe('Integration Tests for Edit Alert', () => {
     mockCreateAlertDefinition(service_type, alertDetails).as(
       'createAlertDefinition'
     );
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
 
     // Visit Edit Alert page
     cy.visitWithLogin(`/alerts/definitions/edit/${service_type}/${id}`);

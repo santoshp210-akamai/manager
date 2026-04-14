@@ -1,5 +1,8 @@
 import { linodeFactory, regionFactory } from '@linode/utilities';
-import { mockGetAlertDefinition } from 'support/intercepts/cloudpulse';
+import {
+  mockGetAlertDefinition,
+  mockGetEntitiesByAlertId,
+} from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
 import {
   interceptUpdateLinode,
@@ -10,7 +13,7 @@ import { ui } from 'support/ui';
 import { assertLinodeAlertsEnabled } from 'support/util/linodes';
 import { randomLabel } from 'support/util/random';
 
-import { alertFactory } from 'src/factories';
+import { alertFactory, entitiesFactory } from 'src/factories';
 import {
   ALERTS_ACLP_MODE_BETA_AND_NEW_PHASE_BUTTON_TEXT,
   ALERTS_ACLP_MODE_BETA_PHASE_BANNER_TEXT,
@@ -95,7 +98,6 @@ describe('region enables alerts', function () {
         severity: 1,
         status: 'enabled',
         type: 'system',
-        entity_ids: [MOCK_LINODE_ID.toString()],
       }),
       alertFactory.build({
         id: 2,
@@ -105,7 +107,6 @@ describe('region enables alerts', function () {
         severity: 1,
         status: 'enabled',
         type: 'system',
-        entity_ids: [MOCK_LINODE_ID.toString()],
       }),
       alertFactory.build({
         id: 3,
@@ -115,13 +116,21 @@ describe('region enables alerts', function () {
         severity: 1,
         status: 'enabled',
         type: 'user',
-        entity_ids: [MOCK_LINODE_ID.toString()],
       }),
     ];
     cy.wrap(alertDefinitions).as('alertDefinitions');
     mockGetAlertDefinition('linode', alertDefinitions).as(
       'getAlertDefinitions'
     );
+    mockGetEntitiesByAlertId('linode', 1, [
+      entitiesFactory.build({ id: MOCK_LINODE_ID.toString(), type: 'linode' }),
+    ]);
+    mockGetEntitiesByAlertId('linode', 2, [
+      entitiesFactory.build({ id: MOCK_LINODE_ID.toString(), type: 'linode' }),
+    ]);
+    mockGetEntitiesByAlertId('linode', 3, [
+      entitiesFactory.build({ id: MOCK_LINODE_ID.toString(), type: 'linode' }),
+    ]);
   });
 
   xit('Legacy alerts = 0, Beta alerts = [] => legacy disabled', function () {

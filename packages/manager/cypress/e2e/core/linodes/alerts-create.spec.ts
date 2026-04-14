@@ -1,6 +1,9 @@
 import { regionAvailabilityFactory, regionFactory } from '@linode/utilities';
 import { mockGetAccountSettings } from 'support/intercepts/account';
-import { mockGetAlertDefinition } from 'support/intercepts/cloudpulse';
+import {
+  mockGetAlertDefinition,
+  mockGetEntitiesByAlertId,
+} from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
 import { mockGetFirewalls } from 'support/intercepts/firewalls';
 import { interceptCreateLinode } from 'support/intercepts/linodes';
@@ -194,7 +197,6 @@ describe('Create flow when beta alerts enabled by region and feature flag', func
     const alertDefinitions = [
       alertFactory.build({
         description: randomLabel(),
-        entity_ids: ['1', '2', '3'],
         label: randomLabel(),
         service_type: 'linode',
         severity: 1,
@@ -203,7 +205,6 @@ describe('Create flow when beta alerts enabled by region and feature flag', func
       }),
       alertFactory.build({
         description: randomLabel(),
-        entity_ids: ['1', '2', '3'],
         label: randomLabel(),
         service_type: 'linode',
         severity: 1,
@@ -212,7 +213,6 @@ describe('Create flow when beta alerts enabled by region and feature flag', func
       }),
       alertFactory.build({
         description: randomLabel(),
-        entity_ids: ['1', '2', '3'],
         label: randomLabel(),
         service_type: 'linode',
         severity: 1,
@@ -223,6 +223,9 @@ describe('Create flow when beta alerts enabled by region and feature flag', func
     mockGetAlertDefinition('linode', alertDefinitions).as(
       'getAlertDefinitions'
     );
+    alertDefinitions.forEach((alertDef) => {
+      mockGetEntitiesByAlertId('linode', alertDef.id, []);
+    });
     interceptCreateLinode().as('createLinode');
     cy.visitWithLogin('/linodes/create');
     cy.wait(['@getFeatureFlags', '@getSettings', '@getRegions']);

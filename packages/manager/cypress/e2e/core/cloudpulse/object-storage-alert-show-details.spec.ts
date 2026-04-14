@@ -18,6 +18,7 @@ import {
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
   mockGetCloudPulseServiceByType,
+  mockGetEntitiesByAlertId,
 } from 'support/intercepts/cloudpulse';
 import { mockGetDatabases } from 'support/intercepts/databases';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
@@ -33,6 +34,7 @@ import {
   accountFactory,
   alertFactory,
   databaseFactory,
+  entitiesFactory,
   metricBuilder,
   notificationChannelFactory,
   objectStorageBucketFactory,
@@ -81,7 +83,6 @@ const databases: Database[] = databaseFactory.buildList(5).map((db, index) => ({
 }));
 
 const alertDetails = alertFactory.build({
-  entity_ids: databases.slice(0, 4).map((db) => db.id.toString()),
   rule_criteria: { rules: metricBuilder.buildList(1) },
   service_type: 'objectstorage',
   severity: 1,
@@ -92,8 +93,15 @@ const alertDetails = alertFactory.build({
   created: '2023-10-01T12:00:00Z',
   updated: new Date().toISOString(),
 });
-const { rule_criteria } = alertDetails;
+const { id, service_type, rule_criteria } = alertDetails;
 const { rules } = rule_criteria;
+const alertEntities = databases.slice(0, 4).map((db) =>
+  entitiesFactory.build({
+    id: String(db.id),
+    label: db.label,
+    type: 'objectstorage',
+  })
+);
 const notificationChannels = notificationChannelFactory.build();
 
 const verifyRowOrder = (expectedIds: string[]) => {
@@ -259,6 +267,10 @@ const bucketMock = [
  */
 
 describe('Integration Tests for Alert Show Detail Page', () => {
+  beforeEach(() => {
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
+  });
+
   // Define actions to validate alert details based on the grouping scope (Region or Account)
   const scopeActions: Record<string, () => void> = {
     // Region-level alert validations
@@ -385,7 +397,6 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         alert_channels: [{ id: 1 }],
         created_by: 'user1',
         description: 'My Custom Description',
-        entity_ids: ['bucket-3.us-ord-3.linodeobjects.com'],
         label: 'Alert-1',
         rule_criteria: { rules: metricBuilder.buildList(1) },
         service_type: 'objectstorage',
@@ -417,6 +428,12 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         created,
         updated,
       } = alertDetails;
+      const localAlertEntities = [
+        entitiesFactory.build({
+          id: 'bucket-3.us-ord-3.linodeobjects.com',
+          type: 'objectstorage',
+        }),
+      ];
       mockAppendFeatureFlags(flags);
       mockGetAccount(mockAccount);
       mockGetProfile(mockProfile);
@@ -439,6 +456,7 @@ describe('Integration Tests for Alert Show Detail Page', () => {
       mockCreateAlertDefinition('objectstorage', alertDetails).as(
         'createAlertDefinition'
       );
+      mockGetEntitiesByAlertId(service_type, id, localAlertEntities);
       cy.visitWithLogin(`/alerts/definitions/detail/${service_type}/${id}`);
       cy.wait(['@getDBaaSAlertDefinitions']);
 

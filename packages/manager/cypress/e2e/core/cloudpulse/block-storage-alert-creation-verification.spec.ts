@@ -78,7 +78,6 @@ const databases: Database[] = databaseFactory.buildList(5).map((db, index) => ({
 }));
 
 const alertDetails = alertFactory.build({
-  entity_ids: databases.slice(0, 4).map((db) => db.id.toString()),
   rule_criteria: {
     rules: [blockStorageMetricCriteria.build()],
   },
@@ -308,7 +307,6 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         alert_channels: [{ id: 1 }],
         created_by: 'user1',
         description: 'My Custom Description',
-        entity_ids: ['1', '2', '3', '4'],
         label: 'Alert-1',
         rule_criteria: { rules: blockStorageMetricCriteria.buildList(5) },
         service_type: 'blockstorage',
