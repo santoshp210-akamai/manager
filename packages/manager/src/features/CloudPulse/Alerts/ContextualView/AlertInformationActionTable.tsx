@@ -1,6 +1,6 @@
 import { type Alert, type APIError } from '@linode/api-v4';
 import { useLinodeQuery } from '@linode/queries';
-import { Box, Button, TooltipIcon } from '@linode/ui';
+import { Box, Button, CircleProgress, TooltipIcon } from '@linode/ui';
 import { Grid, TableBody, TableHead } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
@@ -235,10 +235,10 @@ export const AlertInformationActionTable = (
   // one initial call with the real pre-checked state, then subsequent calls on
   // every user toggle.
   React.useEffect(() => {
-    if (isEditMode && onToggleAlert && !isEntityDataLoading) {
-      onToggleAlert(enabledAlerts);
+    if (isEditMode && onToggleAlertRef.current && !isEntityDataLoading) {
+      onToggleAlertRef.current(enabledAlerts, hasUnsavedChanges);
     }
-  }, [enabledAlerts, isEditMode, isEntityDataLoading, onToggleAlert]);
+  }, [enabledAlerts, hasUnsavedChanges, isEditMode, isEntityDataLoading]);
 
   // Cleanup only on actual unmount — uses refs so this effect never re-runs
   // mid-lifecycle, which would incorrectly send onToggleAlert({}, false) between
@@ -272,7 +272,7 @@ export const AlertInformationActionTable = (
           enqueueSnackbar('Your settings for alerts have been saved.', {
             variant: 'success',
           });
-          onToggleAlert?.({}, false);
+          onToggleAlertRef.current?.({}, false);
           invalidateAclpAlerts(
             queryClient,
             serviceType,
@@ -291,7 +291,14 @@ export const AlertInformationActionTable = (
           setIsDialogOpen(false);
         });
     },
-    [updateAlerts, enqueueSnackbar, onToggleAlert]
+    [
+      updateAlerts,
+      serviceType,
+      enqueueSnackbar,
+      queryClient,
+      entityId,
+      alertEntityMap,
+    ]
   );
 
   const handleToggleAlert = React.useCallback(
@@ -318,15 +325,15 @@ export const AlertInformationActionTable = (
           !arraysEqual(newPayload.system_alerts, initialState.system_alerts) ||
           !arraysEqual(newPayload.user_alerts, initialState.user_alerts);
 
-        // Call onToggleAlert in both create and edit flow
-        if (onToggleAlert) {
-          onToggleAlert(newPayload, hasNewUnsavedChanges);
+        // Call onToggleAlert only in create mode - in edit mode, the useEffect handles it
+        if (isCreateMode && onToggleAlertRef.current) {
+          onToggleAlertRef.current(newPayload, hasNewUnsavedChanges);
         }
 
         return newPayload;
       });
     },
-    [initialState, onToggleAlert, setEnabledAlerts]
+    [initialState, setEnabledAlerts, isCreateMode]
   );
 
   const handleCustomPageChange = React.useCallback(
@@ -340,6 +347,9 @@ export const AlertInformationActionTable = (
     []
   );
 
+  if (isEntitiesLoading) {
+    return <CircleProgress />;
+  }
   return (
     <>
       <OrderBy data={alerts} order="asc" orderBy={orderByColumn}>

@@ -19,6 +19,8 @@ import {
 } from '@tanstack/react-query';
 import React from 'react';
 
+import { getAllEntitiesByAlerts } from 'src/features/CloudPulse/Utils/utils';
+
 import { queryFactory } from './queries';
 import { invalidateAclpAlerts } from './useAlertsMutation';
 
@@ -37,6 +39,7 @@ import type {
   NotificationChannelAlerts,
 } from '@linode/api-v4/lib/cloudpulse';
 import type { APIError, Filter, Params } from '@linode/api-v4/lib/types';
+import type { UseQueryOptions } from '@tanstack/react-query';
 
 export const useCreateAlertDefinition = (serviceType: string) => {
   const queryClient = useQueryClient();
@@ -467,31 +470,14 @@ export const useAllEntitiesByAlertsQuery = (
   isLoading: boolean;
 } => {
   const results = useQueries({
-    queries: alerts.map((alert) => ({
+    queries: alerts.map<UseQueryOptions<Entities[], APIError[]>>((alert) => ({
       ...queryFactory.entities._ctx.all(alert.service_type, String(alert.id)),
       enabled: alert.scope === 'entity' && !!entityId,
     })),
   });
 
-  const alertEntityMap = React.useMemo(() => {
-    const map = new Map<number, string[]>();
-    alerts.forEach((alert, index) => {
-      const { data, isError } = results[index] ?? {};
-      // On error: omit from map — alertEntityMap.get() will return undefined,
-      // falling back to [] in useContextualAlertsState so the alert is not pre-checked.
-      if (!isError && data) {
-        map.set(
-          alert.id,
-          data.map((e) => e.id)
-        );
-      }
-    });
-    return map;
-  }, [alerts, results]);
-
-  return {
-    alertEntityMap,
-    isError: results.some((r) => r.isError),
-    isLoading: results.some((r) => r.isPending),
-  };
+  return React.useMemo(
+    () => getAllEntitiesByAlerts(results, alerts),
+    [results, alerts]
+  );
 };
