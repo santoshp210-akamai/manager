@@ -170,7 +170,6 @@ const mockProfile = profileFactory.build({
 const mockAlerts = alertFactory.build({
   label: 'Alert-1',
   service_type: 'nodebalancer',
-  entity_ids: ['2'],
 });
 const mockNodeBalancer = nodeBalancerFactory.build({
   label: 'NodeBalancer-1',
@@ -281,7 +280,6 @@ describe('Create Alert', () => {
         created_by: 'user1',
         description: 'My Custom Description',
         label: 'Alert-1',
-        entity_ids: ['2'],
         rule_criteria: {
           rules: [
             ingressTrafficRateRulesFactory.build(),

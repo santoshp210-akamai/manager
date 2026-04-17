@@ -15,6 +15,7 @@ import type {
   Alert,
   CloudPulseMetricsResponse,
   Dashboard,
+  Entities,
   MetricDefinition,
   NotificationChannel,
   NotificationChannelAlerts,
@@ -930,4 +931,30 @@ export const mockCreateCloudPulseMetricsError = (
     statusCode: 500,
     body: 'internal server error',
   });
+};
+
+/**
+ * Mocks the API response for retrieving entities associated with a specific alert definition.
+ *
+ * Intercepts GET requests to the entities endpoint for a given service type and alert ID,
+ * returning a paginated mock response containing the provided entities.
+ *
+ * @param {string} serviceType - The service type (e.g., "dbaas", "linode", "firewall").
+ * @param {number} alertId - The unique identifier of the alert definition.
+ * @param {Entities[]} entities - Array of entity objects to return as the mock response.
+ *
+ * @returns {Cypress.Chainable<null>} A Cypress chainable representing the intercepted request.
+ */
+export const mockGetEntitiesByAlertId = (
+  serviceType: string,
+  alertId: number,
+  entities: Entities[]
+): Cypress.Chainable<null> => {
+  return cy.intercept(
+    'GET',
+    apiMatcher(
+      `monitor/services/${serviceType}/alert-definitions/${alertId}/entities*`
+    ),
+    paginateResponse(entities)
+  );
 };

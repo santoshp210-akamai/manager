@@ -18,6 +18,7 @@ import {
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
   mockGetCloudPulseServiceByType,
+  mockGetEntitiesByAlertId,
 } from 'support/intercepts/cloudpulse';
 import { mockGetDatabases } from 'support/intercepts/databases';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
@@ -30,6 +31,7 @@ import {
   alertFactory,
   blockStorageMetricCriteria,
   databaseFactory,
+  entitiesFactory,
   notificationChannelFactory,
   serviceAlertFactory,
   serviceTypesFactory,
@@ -84,7 +86,6 @@ const databases: Database[] = databaseFactory.buildList(5).map((db, index) => ({
 }));
 
 const alertDetails = alertFactory.build({
-  entity_ids: databases.slice(0, 4).map((db) => db.id.toString()),
   rule_criteria: {
     rules: [blockStorageMetricCriteria.build()],
   },
@@ -98,8 +99,15 @@ const alertDetails = alertFactory.build({
   created: '2023-10-01T12:00:00Z',
   updated: new Date().toISOString(),
 });
-const { rule_criteria } = alertDetails;
+const { id, service_type, rule_criteria } = alertDetails;
 const { rules } = rule_criteria;
+const alertEntities = databases.slice(0, 4).map((db) =>
+  entitiesFactory.build({
+    id: String(db.id),
+    label: db.label,
+    type: 'blockstorage',
+  })
+);
 const notificationChannels = notificationChannelFactory.build();
 
 const mockProfile = profileFactory.build({
@@ -304,6 +312,10 @@ describe('Integration Tests for Alert Show Detail Page', () => {
     }),
   ];
 
+  beforeEach(() => {
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
+  });
+
   entityGroupingOptions.forEach(({ label: groupLabel, value }) => {
     it(`should correctly display the details of the blockstorage alert in the alert details view for ${groupLabel} level`, () => {
       const regionList = ['us-ord', 'us-east'];
@@ -311,7 +323,7 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         alert_channels: [{ id: 1 }],
         created_by: 'user1',
         description: 'My Custom Description',
-        entity_ids: ['1', '2', '3', '4'],
+
         label: 'Alert-1',
         rule_criteria: { rules: blockStorageMetricCriteria.buildList(5) },
         service_type: 'blockstorage',
@@ -343,6 +355,9 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         created,
         updated,
       } = alertDetails;
+      const localAlertEntities = ['1', '2', '3', '4'].map((entityId) =>
+        entitiesFactory.build({ id: entityId, type: 'blockstorage' })
+      );
       mockAppendFeatureFlags(flags);
       mockGetAccount(mockAccount);
       mockGetProfile(mockProfile);
@@ -362,6 +377,7 @@ describe('Integration Tests for Alert Show Detail Page', () => {
       mockCreateAlertDefinition('blockstorage', alertDetails).as(
         'createAlertDefinition'
       );
+      mockGetEntitiesByAlertId(service_type, id, localAlertEntities);
       cy.visitWithLogin(`/alerts/definitions/detail/${service_type}/${id}`);
       cy.wait(['@getDBaaSAlertDefinitions']);
 

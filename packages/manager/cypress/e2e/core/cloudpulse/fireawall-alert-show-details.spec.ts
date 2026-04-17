@@ -17,6 +17,7 @@ import {
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
   mockGetCloudPulseServiceByType,
+  mockGetEntitiesByAlertId,
 } from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
 import { mockGetFirewalls } from 'support/intercepts/firewalls';
@@ -26,6 +27,7 @@ import { mockGetProfile } from 'support/intercepts/profile';
 import {
   accountFactory,
   alertFactory,
+  entitiesFactory,
   firewallFactory,
   firewallMetricRulesFactory,
   notificationChannelFactory,
@@ -46,7 +48,6 @@ const flags: Partial<Flags> = { aclp: { beta: true, enabled: true } };
 const mockAccount = accountFactory.build();
 
 const alertDetails = alertFactory.build({
-  entity_ids: ['1'],
   rule_criteria: {
     rules: firewallMetricRulesFactory.buildList(1),
   },
@@ -59,8 +60,9 @@ const alertDetails = alertFactory.build({
   created: '2023-10-01T12:00:00Z',
   updated: new Date().toISOString(),
 });
-const { rule_criteria } = alertDetails;
+const { id, service_type, rule_criteria } = alertDetails;
 const { rules } = rule_criteria;
+const alertEntities = [entitiesFactory.build({ id: '1', type: 'firewall' })];
 const notificationChannels = [
   notificationChannelFactory.build({
     id: 1,
@@ -340,6 +342,10 @@ const scopeActions: Record<string, () => void> = {
 };
 
 describe('Integration Tests for Alert Show Detail Page', () => {
+  beforeEach(() => {
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
+  });
+
   entityGroupingOptions
     .filter(({ value }) => value !== 'region') // exclude Region scope for firewall
     .forEach(({ label: groupLabel, value }) => {
@@ -349,7 +355,6 @@ describe('Integration Tests for Alert Show Detail Page', () => {
           alert_channels: [{ id: 1 }],
           created_by: 'user1',
           description: 'My Custom Description',
-          entity_ids: ['1', '2'],
           label: 'Alert-1',
           rule_criteria: {
             rules: firewallMetricRulesFactory.buildList(1),
@@ -383,6 +388,9 @@ describe('Integration Tests for Alert Show Detail Page', () => {
           created,
           updated,
         } = alertDetails;
+        const localAlertEntities = ['1', '2'].map((entityId) =>
+          entitiesFactory.build({ id: entityId, type: 'firewall' })
+        );
         mockAppendFeatureFlags(flags);
         mockGetAccount(mockAccount);
         mockGetProfile(mockProfile);
@@ -403,6 +411,7 @@ describe('Integration Tests for Alert Show Detail Page', () => {
         mockCreateAlertDefinition('Firewalls', alertDetails).as(
           'createAlertDefinition'
         );
+        mockGetEntitiesByAlertId(service_type, id, localAlertEntities);
         cy.visitWithLogin(`/alerts/definitions/detail/${service_type}/${id}`);
         mockGetFirewalls(mockFirewalls);
         mockGetLinodes(mockLinodes);

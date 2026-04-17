@@ -9,6 +9,7 @@ import { mockGetAccount } from 'support/intercepts/account';
 import {
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
+  mockGetEntitiesByAlertId,
   mockUpdateAlertDefinitions,
 } from 'support/intercepts/cloudpulse';
 import { mockGetDatabases } from 'support/intercepts/databases';
@@ -20,6 +21,7 @@ import {
   accountFactory,
   alertFactory,
   databaseFactory,
+  entitiesFactory,
   flagsFactory,
 } from 'src/factories';
 
@@ -29,7 +31,6 @@ const expectedResourceIds = Array.from({ length: 50 }, (_, i) => String(i + 1));
 const mockAccount = accountFactory.build();
 const alertDetails = alertFactory.build({
   description: 'Test description',
-  entity_ids: ['1', '2', '3'],
   label: 'Alert-1',
   service_type: 'dbaas',
   severity: 1,
@@ -62,6 +63,10 @@ const databases: Database[] = databaseFactory
   }));
 const pages = [1, 2];
 
+const alertEntities = entitiesFactory
+  .buildList(3)
+  .map((e, i) => ({ ...e, id: String(i + 1) }));
+
 describe('Integration Tests for Edit Alert', () => {
   /*
    * - Confirms navigation from the Alert Definitions List page to the Edit Alert page.
@@ -81,6 +86,7 @@ describe('Integration Tests for Edit Alert', () => {
       'getAlertDefinitions'
     );
     mockGetDatabases(databases).as('getDatabases');
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
     mockUpdateAlertDefinitions(service_type, id, alertDetails).as(
       'updateDefinitions'
     );

@@ -32,6 +32,7 @@ import {
   mockGetCloudPulseMetricDefinitions,
   mockGetCloudPulseServiceByType,
   mockGetCloudPulseServices,
+  mockGetEntitiesByAlertId,
   mockGetStreams,
   mockUpdateAlertDefinitions,
 } from 'support/intercepts/cloudpulse';
@@ -43,6 +44,7 @@ import {
   accountFactory,
   alertFactory,
   dashboardMetricFactory,
+  entitiesFactory,
   flagsFactory,
   logAlertRulesFactory,
   notificationChannelFactory,
@@ -98,7 +100,6 @@ const alertDetails = alertFactory.build({
   alert_channels: [{ id: 1 }],
   created_by: 'user1',
   description: 'My Custom Description',
-  entity_ids: ['2'],
   label: 'Alert-2',
   rule_criteria: {
     rules: [
@@ -161,6 +162,10 @@ const services = serviceTypesFactory.build({
 });
 
 const streams = streamFactory.buildList(5);
+
+const alertEntities = entitiesFactory
+  .buildList(1)
+  .map((e) => ({ ...e, id: '2' }));
 
 // Interface for rule criteria assertions
 interface RuleCriteria {
@@ -250,6 +255,7 @@ describe('Integration Tests for Edit Alert', () => {
     mockGetCloudPulseMetricDefinitions(service_type, metricDefinitions);
     mockGetAlertChannels([notificationChannels]);
     mockGetStreams(streams);
+    mockGetEntitiesByAlertId(service_type, alertId, alertEntities);
   });
 
   it('should correctly display the details of the alert in the Edit Alert page', () => {
@@ -325,7 +331,6 @@ describe('Integration Tests for Edit Alert', () => {
       alert_channels: [{ id: 1 }],
       created_by: 'user1',
       description: 'My Custom Description',
-      entity_ids: ['2'],
       label: 'Alert-2',
       rule_criteria: {
         rules: [
@@ -366,6 +371,7 @@ describe('Integration Tests for Edit Alert', () => {
     mockCreateAlertDefinition(service_type, updatedAlertDetails).as(
       'createAlertDefinition'
     );
+    mockGetEntitiesByAlertId(service_type, alertId, alertEntities);
 
     cy.visitWithLogin(`/alerts/definitions/edit/${service_type}/${alertId}`);
     cy.wait('@getAlertDefinitions');

@@ -8,6 +8,7 @@ import { mockGetAccount } from 'support/intercepts/account';
 import {
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
+  mockGetEntitiesByAlertId,
   mockUpdateAlertDefinitions,
 } from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
@@ -17,6 +18,7 @@ import { ui } from 'support/ui';
 import {
   accountFactory,
   alertFactory,
+  entitiesFactory,
   firewallFactory,
   firewallMetricRulesFactory,
   firewallNodebalancerMetricCriteria,
@@ -117,7 +119,6 @@ describe('Integration Tests for Edit Alert', () => {
     // Navigate to the Edit Alert page
     const alertDetails = alertFactory.build({
       description: 'Test description',
-      entity_ids: ['1', '2', '3'],
       label: 'Alert-1',
       service_type: 'firewall',
       severity: 1,
@@ -129,6 +130,10 @@ describe('Integration Tests for Edit Alert', () => {
     });
 
     const { id, label, service_type } = alertDetails;
+    const alertEntities = entitiesFactory
+      .buildList(3)
+      .map((e, i) => ({ ...e, id: String(i + 1) }));
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
     mockGetAllAlertDefinitions([alertDetails]).as('getAlertDefinitionsList');
     mockGetAlertDefinitions(service_type, id, alertDetails).as(
       'getAlertDefinitions'
@@ -269,7 +274,6 @@ describe('Integration Tests for Edit Alert', () => {
     // Navigate to the Edit Alert page
     const alertDetails = alertFactory.build({
       description: 'Test description',
-      entity_ids: [],
       label: 'Alert-1',
       service_type: 'firewall',
       severity: 1,
@@ -281,6 +285,7 @@ describe('Integration Tests for Edit Alert', () => {
     });
 
     const { id, label, service_type } = alertDetails;
+    mockGetEntitiesByAlertId(service_type, id, []);
     mockGetAllAlertDefinitions([alertDetails]).as('getAlertDefinitionsList');
     mockGetAlertDefinitions(service_type, id, alertDetails).as(
       'getAlertDefinitions'

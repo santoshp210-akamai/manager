@@ -56,7 +56,6 @@ const mockAlerts = serviceType.flatMap((serviceType, i) =>
   statuses.map((status, j) =>
     alertFactory.build({
       created_by: `user${i * 2 + j + 1}`,
-      entity_ids: ['1', '2', '3', '4', '5'],
       id: i * 2 + j + 1,
       label: `Alert-${i * 2 + j + 1}`,
       service_type: serviceType,

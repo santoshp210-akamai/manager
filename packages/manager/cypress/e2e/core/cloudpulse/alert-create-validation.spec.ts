@@ -58,7 +58,6 @@ const mockAlerts = alertFactory.build({
   alert_channels: [{ id: 1 }],
   created_by: 'user1',
   description: 'My Custom Description',
-  entity_ids: ['2'],
   label: 'Alert-1',
   rule_criteria: {
     rules: [cpuRulesFactory.build(), memoryRulesFactory.build()],

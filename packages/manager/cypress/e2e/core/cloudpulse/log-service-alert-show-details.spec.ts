@@ -17,6 +17,7 @@ import {
   mockGetAlertDefinitions,
   mockGetAllAlertDefinitions,
   mockGetCloudPulseServices,
+  mockGetEntitiesByAlertId,
   mockGetStreams,
 } from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
@@ -26,6 +27,7 @@ import { ui } from 'support/ui';
 import {
   accountFactory,
   alertFactory,
+  entitiesFactory,
   flagsFactory,
   logAlertRulesFactory,
   notificationChannelFactory,
@@ -45,7 +47,6 @@ import type {
 const mockAccount = accountFactory.build();
 
 const alertDetails = alertFactory.build({
-  entity_ids: ['1', '2', '3', '4'],
   rule_criteria: { rules: logAlertRulesFactory.buildList(2) },
   service_type: 'logs',
   severity: 1,
@@ -60,6 +61,9 @@ const alertDetails = alertFactory.build({
 const { id, label, service_type } = alertDetails;
 const notificationChannels = notificationChannelFactory.build();
 const streams = streamFactory.buildList(3);
+const alertEntities = ['1', '2', '3', '4'].map((entityId) =>
+  entitiesFactory.build({ id: entityId, type: 'logs' })
+);
 
 const mockProfile = profileFactory.build({
   timezone: 'gmt',
@@ -332,6 +336,7 @@ describe('Log Service Integration Tests for Alert Show Detail Page', () => {
     mockGetAlertChannels([notificationChannels]);
     mockGetCloudPulseServices([service_type]);
     mockGetStreams(streams);
+    mockGetEntitiesByAlertId(service_type, id, alertEntities);
   });
 
   it('navigates to the Show Details page from the list page', () => {
@@ -362,7 +367,6 @@ describe('Log Service Integration Tests for Alert Show Detail Page', () => {
         const builtAlert = alertFactory.build({
           id: 2,
           label: 'Alert-1',
-          entity_ids: ['1', '2', '3', '4'],
           rule_criteria: { rules: logAlertRulesFactory.buildList(2) },
           service_type: 'logs',
           severity: 1,
@@ -389,10 +393,15 @@ describe('Log Service Integration Tests for Alert Show Detail Page', () => {
 
         const { rules } = rule_criteria;
 
+        const localAlertEntities = ['1', '2', '3', '4'].map((entityId) =>
+          entitiesFactory.build({ id: entityId, type: 'logs' })
+        );
+
         mockGetAllAlertDefinitions([builtAlert]).as('getAlertDefinitionsList');
         mockGetAlertDefinitions(service_type, id, builtAlert).as(
           'getLogAlertDefinitions'
         );
+        mockGetEntitiesByAlertId(service_type, id, localAlertEntities);
 
         cy.visitWithLogin(`/alerts/definitions/detail/${service_type}/${id}`);
         cy.wait(['@getLogAlertDefinitions']);
